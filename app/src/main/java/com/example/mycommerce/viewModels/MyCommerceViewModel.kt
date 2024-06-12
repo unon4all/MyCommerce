@@ -1,10 +1,13 @@
 package com.example.mycommerce.viewModels
 
-import androidx.compose.runtime.mutableStateListOf
+import android.util.Log
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
 import com.example.mycommerce.data.ECommerceItem
+import com.example.mycommerce.data.Event
+import com.example.mycommerce.data.OrderHistoryItem
+import com.example.mycommerce.data.OrderStatus
+import com.example.mycommerce.data.eCommerceItemsList
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -13,14 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
-import com.example.mycommerce.data.Event
-import com.example.mycommerce.data.OrderHistoryItem
-import com.example.mycommerce.data.OrderStatus
 import kotlin.math.roundToInt
 
 const val USERS = "users"
-const val POSTS = "posts"
-const val COMMENTS = "comments"
 
 @HiltViewModel
 class MyCommerceViewModel @Inject constructor(
@@ -59,6 +57,7 @@ class MyCommerceViewModel @Inject constructor(
     private val _orderHistory = MutableStateFlow<List<OrderHistoryItem>>(emptyList())
     val orderHistory: StateFlow<List<OrderHistoryItem>> = _orderHistory
 
+
     fun placeOrder() {
         // Assuming order placement logic here, then update order status
         _orderStatus.value = OrderStatus.PLACED
@@ -66,8 +65,13 @@ class MyCommerceViewModel @Inject constructor(
         val orderHistoryList = _orderHistory.value.toMutableList()
 
         // Add current cart items to order history
-        orderHistoryList.add(OrderHistoryItem(_cartItems.value, OrderStatus.PLACED))
+        orderHistoryList.add(
+            OrderHistoryItem(
+                _cartItems.value, OrderStatus.PLACED, calculateTotalPrice()
+            )
+        )
         _orderHistory.value = orderHistoryList
+        saveOrderHistoryToFirebase()
 
         // Clear the cart after placing the order
         clearCart()
@@ -89,7 +93,7 @@ class MyCommerceViewModel @Inject constructor(
         _cartItems.value = updatedList
     }
 
-    fun getItemFromCart(itemId: String): ECommerceItem? {
+    private fun getItemFromCart(itemId: String): ECommerceItem? {
         return _cartItems.value.find { it.id == itemId }
     }
 
@@ -209,5 +213,56 @@ class MyCommerceViewModel @Inject constructor(
         _usernameError.value = null
         _emailError.value = null
         _passwordError.value = null
+    }
+
+    private fun saveOrderHistoryToFirebase() {
+        val currentUser = auth.currentUser ?: return
+        val userId = currentUser.uid
+
+        val orderHistoryMap = _orderHistory.value.map { order ->
+            mapOf(
+                "itemIds" to order.items.map { it.id },
+                "status" to order.status.name,
+                "totalPrice" to order.totalPrice
+            )
+        }
+
+        db.collection("users").document(userId).set(mapOf("orderHistory" to orderHistoryMap))
+            .addOnSuccessListener {
+                _popupNotification.value = Event("Order history saved successfully")
+            }.addOnFailureListener { exception ->
+                handleException(exception, "Error saving order history")
+            }
+    }
+
+    fun fetchOrderHistory() {
+        val currentUser = auth.currentUser ?: return
+        val userId = currentUser.uid
+
+        db.collection("users").document(userId).get().addOnSuccessListener { documentSnapshot ->
+            if (documentSnapshot.exists()) {
+                val orderHistoryMap =
+                    documentSnapshot.get("orderHistory") as? List<Map<String, Any>>
+                if (orderHistoryMap != null) {
+                    val orderHistoryList = orderHistoryMap.map { orderMap ->
+                        val itemIds = orderMap["itemIds"] as List<String>
+                        val items = itemIds.mapNotNull { itemId -> getItemDetails(itemId) }
+                        OrderHistoryItem(
+                            items = items,
+                            status = OrderStatus.valueOf(orderMap["status"] as String),
+                            totalPrice = (orderMap["totalPrice"] as Long).toInt()
+                        )
+                    }
+                    _orderHistory.value = orderHistoryList
+                }
+            }
+        }.addOnFailureListener { exception ->
+            handleException(exception, "Error fetching order history")
+        }
+    }
+
+
+    private fun getItemDetails(itemId: String): ECommerceItem? {
+        return eCommerceItemsList.find { it.id == itemId }
     }
 }
