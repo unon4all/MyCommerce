@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "435009982310",
+    "project_id": "mycommerce-dcad8",
+    "storage_bucket": "mycommerce-dcad8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435009982310:android:de34c33c3944845af502a7",
+        "android_client_info": {
+          "package_name": "com.example.mycommerce"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBahtN5zJ5ui78ro5J_C_UmaN1N2WookSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
