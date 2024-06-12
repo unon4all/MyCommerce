@@ -11,6 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.mycommerce.ui.theme.MyCommerceTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,8 +23,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyCommerceTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                    MyCommerceApp(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -31,17 +33,29 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun MyCommerceApp(
+    modifier: Modifier = Modifier,
+) {
+
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController, startDestination = DestinationGraph.Signup.route
+    ) {
+
+        composable(DestinationGraph.Signup.route) {
+
+        }
+
+        composable(DestinationGraph.Signin.route) {
+
+        }
+
+    }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MyCommerceTheme {
-        Greeting("Android")
-    }
+
+sealed class DestinationGraph(val route: String) {
+    data object Signup : DestinationGraph("signup")
+    data object Signin : DestinationGraph("signin")
 }
