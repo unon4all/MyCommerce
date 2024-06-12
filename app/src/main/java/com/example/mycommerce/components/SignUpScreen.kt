@@ -20,9 +20,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -45,16 +44,12 @@ import androidx.navigation.NavController
 import com.example.mycommerce.DestinationGraph
 import com.example.mycommerce.R
 import com.example.mycommerce.components.common.navigateTo
+import com.example.mycommerce.viewModels.MyCommerceViewModel
 
 @Composable
 fun SignupScreen(
-    modifier: Modifier = Modifier, navController: NavController
+    modifier: Modifier = Modifier, navController: NavController, viewModel: MyCommerceViewModel
 ) {
-
-    //States for each textField
-    val (usernameTextFieldValue, onUsernameChange) = rememberTextFieldState()
-    val (emailTextFieldValue, onEmailChange) = rememberTextFieldState()
-    val (passwordTextFieldValue, onPasswordChange) = rememberTextFieldState()
 
     Box(
         modifier = modifier
@@ -63,12 +58,7 @@ fun SignupScreen(
     ) {
         SignUpContent(
             modifier = Modifier,
-            usernameTextFieldValue = usernameTextFieldValue,
-            onUsernameChange = onUsernameChange,
-            emailTextFieldValue = emailTextFieldValue,
-            onEmailChange = onEmailChange,
-            passwordTextFieldValue = passwordTextFieldValue,
-            onPasswordChange = onPasswordChange,
+            viewModel = viewModel,
             navController = navController,
         )
     }
@@ -78,12 +68,7 @@ fun SignupScreen(
 @Composable
 fun SignUpContent(
     modifier: Modifier = Modifier,
-    usernameTextFieldValue: TextFieldValue,
-    onUsernameChange: (TextFieldValue) -> Unit,
-    emailTextFieldValue: TextFieldValue,
-    onEmailChange: (TextFieldValue) -> Unit,
-    passwordTextFieldValue: TextFieldValue,
-    onPasswordChange: (TextFieldValue) -> Unit,
+    viewModel: MyCommerceViewModel,
     navController: NavController,
 ) {
 
@@ -109,28 +94,48 @@ fun SignUpContent(
             fontWeight = FontWeight.Bold
         )
 
+        val username by viewModel.username.collectAsState()
+        val usernameError by viewModel.usernameError.collectAsState()
+
         UsernameTextField(
-            value = usernameTextFieldValue, onValueChange = onUsernameChange
+            value = username,
+            onValueChange = viewModel::onUsernameChange,
+            isError = usernameError != null,
+            errorMessage = usernameError
         )
+
+        val email by viewModel.email.collectAsState()
+        val emailError by viewModel.emailError.collectAsState()
 
         EmailTextField(
-            value = emailTextFieldValue, onValueChange = onEmailChange
+            value = email,
+            onValueChange = viewModel::onEmailChange,
+            isError = emailError != null,
+            errorMessage = emailError
         )
 
+        val password by viewModel.password.collectAsState()
+        val passwordError by viewModel.passwordError.collectAsState()
+
         PassTextField(
-            value = passwordTextFieldValue, onValueChange = onPasswordChange
+            value = password,
+            onValueChange = viewModel::onPasswordChange,
+            isError = passwordError != null,
+            errorMessage = passwordError
         )
 
         Button(onClick = {
             focusManager.clearFocus(force = true)
-
-        }, modifier = Modifier.padding(16.dp)) {
+            if (viewModel.validateForm()) {
+                // Handle successful validation
+            }
+        }, modifier = Modifier.padding(16.dp), enabled = viewModel.validateForm()) {
             Text(text = "SIGN UP")
         }
 
         ClickableText(text = AnnotatedString(
             text = "Already have an account? Sign in",
-            spanStyle = SpanStyle(color = Color.Gray)
+            spanStyle = SpanStyle(color = Color.DarkGray)
         ),
             modifier = Modifier.padding(8.dp),
             onClick = { navigateTo(navController, DestinationGraph.Login) })
@@ -139,33 +144,50 @@ fun SignUpContent(
 
 
 @Composable
-fun UsernameTextField(value: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
-    OutlinedTextField(
-        value = value,
+fun UsernameTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    isError: Boolean,
+    errorMessage: String?
+) {
+    OutlinedTextField(value = value,
         onValueChange = onValueChange,
         label = { Text("Username") },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        singleLine = true
-    )
+        singleLine = true,
+        maxLines = 1,
+        isError = isError,
+        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } })
 }
 
 @Composable
-fun EmailTextField(value: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
-    OutlinedTextField(
-        value = value,
+fun EmailTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    isError: Boolean,
+    errorMessage: String?
+) {
+    OutlinedTextField(value = value,
         onValueChange = onValueChange,
         label = { Text("Email") },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        singleLine = true
-    )
+        singleLine = true,
+        maxLines = 1,
+        isError = isError,
+        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } })
 }
 
 @Composable
-fun PassTextField(value: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
+fun PassTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    isError: Boolean,
+    errorMessage: String?
+) {
 
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -187,22 +209,11 @@ fun PassTextField(value: TextFieldValue, onValueChange: (TextFieldValue) -> Unit
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                 Icon(imageVector = image, description)
             }
-        })
-}
-
-@Composable
-fun rememberTextFieldState(): Pair<TextFieldValue, (TextFieldValue) -> Unit> {
-    var text by rememberSaveable { mutableStateOf("") }
-    var textFieldValue by remember {
-        mutableStateOf(TextFieldValue(text, TextRange(text.length)))
-    }
-
-    val onValueChange: (TextFieldValue) -> Unit = { newValue ->
-        textFieldValue = newValue
-        text = newValue.text
-    }
-
-    return textFieldValue to onValueChange
+        },
+        maxLines = 1,
+        isError = isError,
+        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } }
+    )
 }
 
 
