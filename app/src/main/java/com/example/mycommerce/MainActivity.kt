@@ -13,6 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.mycommerce.components.HomeScreen
 import com.example.mycommerce.components.LoginScreen
 import com.example.mycommerce.components.SignupScreen
 import com.example.mycommerce.components.common.NotificationMessage
@@ -59,6 +60,10 @@ fun MyCommerceApp(
             LoginScreen(navController = navController, modifier = modifier, viewModel = viewModel)
         }
 
+        composable(DestinationGraph.Home.route) {
+            HomeScreen(navController = navController, modifier = modifier, viewModel = viewModel)
+        }
+
     }
 }
 
@@ -66,4 +71,7 @@ fun MyCommerceApp(
 sealed class DestinationGraph(val route: String) {
     data object Signup : DestinationGraph("signup")
     data object Login : DestinationGraph("signin")
+    data object Home : DestinationGraph("home?selectedIndex={selectedIndex}") {
+        fun createRoute(selectedIndex: Int) = "home?selectedIndex=$selectedIndex"
+    }
 }

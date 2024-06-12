@@ -2,6 +2,7 @@ package com.example.mycommerce.viewModels
 
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -20,7 +21,7 @@ const val COMMENTS = "comments"
 class MyCommerceViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
 ) : ViewModel() {
 
     private val _popupNotification = MutableStateFlow<Event<String>?>(null)
@@ -48,7 +49,7 @@ class MyCommerceViewModel @Inject constructor(
         exception?.printStackTrace()
         val error = exception?.localizedMessage ?: "Something went wrong"
         val message = if (customMessage.isNotEmpty()) "$customMessage: $error" else error
-        _popupNotification.value = com.example.mycommerce.data.Event(message)
+        _popupNotification.value = Event(message)
     }
 
     //Text field Validation
@@ -99,5 +100,62 @@ class MyCommerceViewModel @Inject constructor(
         validateEmail(_email.value.text)
         validatePassword(_password.value.text)
         return _usernameError.value == null && _emailError.value == null && _passwordError.value == null
+    }
+
+    fun signUp(
+        username: String, email: String, password: String
+    ) {
+        if (validateForm()) {
+            db.collection(USERS).whereEqualTo("username", username).get()
+                .addOnSuccessListener { querySnapshot ->
+                    if (querySnapshot.documents.isNotEmpty()) {
+                        _popupNotification.value = Event("Username already exists")
+                        return@addOnSuccessListener
+                    } else {
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    //User created successfully
+                                    _popupNotification.value = Event("User created successfully")
+                                } else {
+                                    handleException(task.exception, "Error creating user")
+                                }
+                            }
+                    }
+                }.addOnFailureListener {
+                    handleException(it)
+                }
+        }
+    }
+
+    fun logIn(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                //User signed in successfully
+                _popupNotification.value = Event("Signed in successfully")
+            } else {
+                handleException(task.exception, "Error signing in")
+            }
+        }.addOnFailureListener {
+            handleException(it)
+        }
+    }
+
+    fun isUserSignedIn(): Boolean {
+        return auth.currentUser != null
+    }
+
+    fun signOut() {
+        auth.signOut()
+        _popupNotification.value = Event("Signed out successfully")
+    }
+
+    fun resetForm() {
+        _username.value = TextFieldValue("")
+        _email.value = TextFieldValue("")
+        _password.value = TextFieldValue("")
+        _usernameError.value = null
+        _emailError.value = null
+        _passwordError.value = null
     }
 }

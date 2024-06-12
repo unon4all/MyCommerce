@@ -4,8 +4,13 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -71,5 +76,23 @@ fun navigateTo(navController: NavController, destination: DestinationGraph) {
             saveState = true
         }
         launchSingleTop = true
+    }
+}
+
+@Composable
+fun CheckedSignIn(vm: MyCommerceViewModel, navController: NavController) {
+    var alreadySignedIn by remember { mutableStateOf(false) }
+    val signInState by rememberUpdatedState(newValue = mutableStateOf(vm.isUserSignedIn()))
+
+    LaunchedEffect(signInState) {
+        if (signInState.value && !alreadySignedIn) {
+            alreadySignedIn = true
+            navController.navigate(DestinationGraph.Home.createRoute(0)) {
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+                launchSingleTop = true
+            }
+        }
     }
 }

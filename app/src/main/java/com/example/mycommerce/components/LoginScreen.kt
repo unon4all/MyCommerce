@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mycommerce.DestinationGraph
+import com.example.mycommerce.components.common.CheckedSignIn
 import com.example.mycommerce.components.common.navigateTo
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 
@@ -33,6 +34,8 @@ import com.example.mycommerce.viewModels.MyCommerceViewModel
 fun LoginScreen(
     modifier: Modifier = Modifier, navController: NavController, viewModel: MyCommerceViewModel
 ) {
+
+    CheckedSignIn(vm = viewModel, navController = navController)
 
     SignInContent(
         modifier = modifier, navController = navController, viewModel = viewModel
@@ -74,14 +77,14 @@ fun SignInContent(
                 fontWeight = FontWeight.Bold
             )
 
-            val username by viewModel.username.collectAsState()
-            val usernameError by viewModel.usernameError.collectAsState()
+            val email by viewModel.email.collectAsState()
+            val emailError by viewModel.emailError.collectAsState()
 
             EmailTextField(
-                value = username,
-                onValueChange = viewModel::onUsernameChange,
-                isError = usernameError != null,
-                errorMessage = usernameError
+                value = email,
+                onValueChange = viewModel::onEmailChange,
+                isError = emailError != null,
+                errorMessage = emailError
             )
 
             val password by viewModel.password.collectAsState()
@@ -96,6 +99,9 @@ fun SignInContent(
 
             Button(onClick = {
                 focusManager.clearFocus(force = true)
+                viewModel.logIn(
+                    email = email.text, password = password.text
+                )
             }, modifier = Modifier.padding(16.dp)) {
                 Text(text = "LOGIN")
             }
@@ -104,6 +110,8 @@ fun SignInContent(
                 text = "New here? Go to Signup ->",
                 spanStyle = SpanStyle(color = Color.DarkGray)
             ), modifier = Modifier.padding(8.dp), onClick = {
+                focusManager.clearFocus(force = true)
+                viewModel.resetForm()
                 navigateTo(navController, DestinationGraph.Signup)
             })
         }

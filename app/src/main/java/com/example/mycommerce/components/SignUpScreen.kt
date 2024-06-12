@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mycommerce.DestinationGraph
 import com.example.mycommerce.R
+import com.example.mycommerce.components.common.CheckedSignIn
 import com.example.mycommerce.components.common.navigateTo
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 
@@ -50,6 +51,8 @@ import com.example.mycommerce.viewModels.MyCommerceViewModel
 fun SignupScreen(
     modifier: Modifier = Modifier, navController: NavController, viewModel: MyCommerceViewModel
 ) {
+
+    CheckedSignIn(navController = navController, vm = viewModel)
 
     Box(
         modifier = modifier
@@ -128,6 +131,9 @@ fun SignUpContent(
             focusManager.clearFocus(force = true)
             if (viewModel.validateForm()) {
                 // Handle successful validation
+                viewModel.signUp(
+                    username = username.text, email = email.text, password = password.text
+                )
             }
         }, modifier = Modifier.padding(16.dp), enabled = viewModel.validateForm()) {
             Text(text = "SIGN UP")
@@ -212,8 +218,7 @@ fun PassTextField(
         },
         maxLines = 1,
         isError = isError,
-        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } }
-    )
+        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } })
 }
 
 
