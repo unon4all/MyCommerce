@@ -13,7 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.mycommerce.components.HomeScreen
+import com.example.mycommerce.components.UserScreens
 import com.example.mycommerce.components.LoginScreen
 import com.example.mycommerce.components.SignupScreen
 import com.example.mycommerce.components.common.NotificationMessage
@@ -61,9 +61,8 @@ fun MyCommerceApp(
         }
 
         composable(DestinationGraph.Home.route) {
-            HomeScreen(navController = navController, modifier = modifier, viewModel = viewModel)
+            UserScreens(navController = navController, modifier = modifier, viewModel = viewModel)
         }
-
     }
 }
 

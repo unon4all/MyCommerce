@@ -1,8 +1,10 @@
 package com.example.mycommerce.viewModels
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import com.example.mycommerce.data.ECommerceItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -12,6 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import com.example.mycommerce.data.Event
+import com.example.mycommerce.data.OrderHistoryItem
+import com.example.mycommerce.data.OrderStatus
+import kotlin.math.roundToInt
 
 const val USERS = "users"
 const val POSTS = "posts"
@@ -44,6 +49,53 @@ class MyCommerceViewModel @Inject constructor(
 
     private val _passwordError = MutableStateFlow<String?>(null)
     val passwordError: StateFlow<String?> = _passwordError
+
+    private val _cartItems = MutableStateFlow<List<ECommerceItem>>(emptyList())
+    val cartItems: StateFlow<List<ECommerceItem>> get() = _cartItems
+
+    private val _orderStatus = MutableStateFlow<OrderStatus?>(null)
+    val orderStatus: StateFlow<OrderStatus?> = _orderStatus
+
+    private val _orderHistory = MutableStateFlow<List<OrderHistoryItem>>(emptyList())
+    val orderHistory: StateFlow<List<OrderHistoryItem>> = _orderHistory
+
+    fun placeOrder() {
+        // Assuming order placement logic here, then update order status
+        _orderStatus.value = OrderStatus.PLACED
+
+        val orderHistoryList = _orderHistory.value.toMutableList()
+
+        // Add current cart items to order history
+        orderHistoryList.add(OrderHistoryItem(_cartItems.value, OrderStatus.PLACED))
+        _orderHistory.value = orderHistoryList
+
+        // Clear the cart after placing the order
+        clearCart()
+    }
+
+    private fun clearCart() {
+        _cartItems.value = emptyList()
+    }
+
+    fun addToCart(item: ECommerceItem) {
+        val updatedList = _cartItems.value.toMutableList()
+        updatedList.add(item)
+        _cartItems.value = updatedList
+    }
+
+    fun removeFromCart(itemId: String) {
+        val updatedList = _cartItems.value.toMutableList()
+        updatedList.removeAll { it.id == itemId }
+        _cartItems.value = updatedList
+    }
+
+    fun getItemFromCart(itemId: String): ECommerceItem? {
+        return _cartItems.value.find { it.id == itemId }
+    }
+
+    fun calculateTotalPrice(): Int {
+        return _cartItems.value.sumOf { it.itemPrice }.roundToInt()
+    }
 
     private fun handleException(exception: Exception? = null, customMessage: String = "") {
         exception?.printStackTrace()

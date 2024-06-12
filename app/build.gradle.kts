@@ -116,6 +116,8 @@ dependencies {
 
     //Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.5.3")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation("com.airbnb.android:lottie-compose:6.3.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

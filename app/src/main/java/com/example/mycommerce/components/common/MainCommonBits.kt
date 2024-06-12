@@ -96,3 +96,24 @@ fun CheckedSignIn(vm: MyCommerceViewModel, navController: NavController) {
         }
     }
 }
+
+@Composable
+fun CommonImage(
+    modifier: Modifier = Modifier,
+    url: String?,
+    contentDescription: String? = null,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+    val defaultPainter = painterResource(id = R.drawable.ic_person)
+
+    AsyncImage(
+        model = url,
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = contentScale,
+        placeholder = defaultPainter,
+        error = defaultPainter,
+        fallback = defaultPainter,
+        alignment = Alignment.Center
+    )
+}
