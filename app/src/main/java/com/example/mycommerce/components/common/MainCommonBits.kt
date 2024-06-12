@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -38,12 +39,16 @@ fun NotificationMessage(viewModel: MyCommerceViewModel) {
 }
 
 @Composable
-fun CommonDivider() {
+fun CommonDivider(
+    thickness: Dp = 1.dp,
+    color: Color = Color.LightGray,
+    alpha:Float = 0.3f
+) {
     HorizontalDivider(
-        color = Color.LightGray,
-        thickness = 1.dp,
+        color = color,
+        thickness = thickness,
         modifier = Modifier
-            .alpha(0.3f)
+            .alpha(alpha)
             .padding(top = 8.dp, bottom = 8.dp)
     )
 }
