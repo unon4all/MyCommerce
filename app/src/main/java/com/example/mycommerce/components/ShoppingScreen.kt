@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -31,13 +31,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mycommerce.components.common.CommonDivider
 import com.example.mycommerce.components.common.CommonImage
+import com.example.mycommerce.components.common.MyApp
 import com.example.mycommerce.data.ECommerceItem
 import com.example.mycommerce.data.eCommerceItemsList
 import com.example.mycommerce.viewModels.MyCommerceViewModel
@@ -47,8 +47,6 @@ fun ShoppingScreen(
     viewModel: MyCommerceViewModel,
     navController: NavController,
 ) {
-
-    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -67,6 +65,10 @@ fun ShoppingScreen(
             }) {
                 Text(text = "Click here to Logout", fontSize = 14.sp, color = Color.LightGray)
             }
+        }
+        CommonDivider()
+        Box(modifier = Modifier.aspectRatio(16f / 9f)) {
+            MyApp(modifier = Modifier.fillMaxSize())
         }
         CommonDivider()
         ECommerceItemList(itemList = eCommerceItemsList, viewModel = viewModel)
@@ -175,7 +177,7 @@ fun ItemContentDetails(
 }
 
 @Composable
-fun ItemImage(url: String? = null, modifier: Modifier = Modifier) {
+fun ItemImage(modifier: Modifier = Modifier, url: String? = null) {
     CommonImage(
         url = url,
         contentScale = ContentScale.FillBounds,
