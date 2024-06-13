@@ -99,7 +99,9 @@ fun ExpandableCard(
     val icon = if (isExpandable) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward
 
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     ) {
         Row(modifier = Modifier
             .fillMaxWidth()

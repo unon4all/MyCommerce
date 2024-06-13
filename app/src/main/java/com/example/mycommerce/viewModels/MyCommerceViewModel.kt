@@ -251,8 +251,9 @@ class MyCommerceViewModel @Inject constructor(
     fun logIn(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                //User signed in successfully
+                // User signed in successfully
                 _popupNotification.value = Event("Signed in successfully")
+                fetchOrderHistory() // Fetch order history for the logged-in user
             } else {
                 handleException(task.exception, "Error signing in")
             }
@@ -267,6 +268,10 @@ class MyCommerceViewModel @Inject constructor(
 
     fun signOut() {
         auth.signOut()
+        clearCart()
+        _orderHistory.value = emptyList()
+        _orderStatus.value = null
+        resetForm()
         _popupNotification.value = Event("Signed out successfully")
     }
 
@@ -299,7 +304,7 @@ class MyCommerceViewModel @Inject constructor(
             }
     }
 
-    fun fetchOrderHistory() {
+    private fun fetchOrderHistory() {
         val currentUser = auth.currentUser ?: return
         val userId = currentUser.uid
 
