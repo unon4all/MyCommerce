@@ -1,6 +1,7 @@
 package com.example.mycommerce.data.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -33,5 +34,11 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideECommerceItemDao(db: AppDatabase) = db.eCommerceItemDao()
+
+    @Provides
+    @Singleton
+    fun provideSharedPreferences(@ApplicationContext appContext: Context): SharedPreferences {
+        return appContext.getSharedPreferences("my_app_pref", Context.MODE_PRIVATE)
+    }
 }
 

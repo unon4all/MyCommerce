@@ -1,5 +1,6 @@
 package com.example.mycommerce.viewModels
 
+import android.content.SharedPreferences
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,6 +32,7 @@ const val USERS = "users"
 class MyCommerceViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val orderHistoryRepository: OrderHistoryRepository,
+    private val sharedPreferences: SharedPreferences,
 ) : ViewModel() {
 
     private val _popupNotification = MutableStateFlow<Event<String>?>(null)
@@ -74,12 +76,14 @@ class MyCommerceViewModel @Inject constructor(
     private val _isUserSignedIn = MutableStateFlow(false)
     val isUserSignedIn: StateFlow<Boolean> = _isUserSignedIn
 
-    fun fetchAllUsersWithOrders() {
-
-    }
-
-    private fun fetchUserOrderHistory(userId: String, callback: (List<OrderHistoryItem>) -> Unit) {
-
+    init {
+        viewModelScope.launch {
+            // Initialize user session based on stored data
+            val currentUser = userRepository.getCurrentUser().first()
+            if (currentUser != null) {
+                updateUserIdAndSignInState(currentUser.id, true)
+            }
+        }
     }
 
     // Function to update user ID and signed-in state
@@ -218,7 +222,8 @@ class MyCommerceViewModel @Inject constructor(
                     val success = userRepository.insertUser(newUser, password)
                     if (success) {
                         _popupNotification.value = Event("Sign-up successful")
-                        updateSignedInState(true)
+                        userRepository.setCurrentUser(newUser.id) // Update current user session
+                        updateUserIdAndSignInState(newUser.id, true)
                     } else {
                         _popupNotification.value = Event("Sign-up failed")
                     }
@@ -236,7 +241,7 @@ class MyCommerceViewModel @Inject constructor(
                 if (user != null && userRepository.validatePassword(password, user.passwordHash)) {
                     _popupNotification.value = Event("Login successful")
                     updateUserIdAndSignInState(user.id, true)
-                    updateSignedInState(true)
+                    userRepository.setCurrentUser(user.id) // Update current user session
                     fetchOrderHistory()
                     // Handle successful login
                 } else {
@@ -246,12 +251,9 @@ class MyCommerceViewModel @Inject constructor(
         }
     }
 
-    private fun updateSignedInState(isSignedIn: Boolean) {
-        _isUserSignedIn.value = isSignedIn
-    }
-
     // Function to sign out user
     fun signOut() {
+        userRepository.setCurrentUser(null) // Clear current user session
         updateUserIdAndSignInState(null, false)
         clearCart()
         _orderHistory.value = emptyList()
@@ -286,4 +288,17 @@ class MyCommerceViewModel @Inject constructor(
     private fun getItemDetails(itemId: String): ECommerceItem? {
         return _cartItems.value.find { it.id == itemId }
     }
+
+
+    fun fetchAllUsersWithOrders() {
+        viewModelScope.launch {
+            try {
+                val usersWithOrders = orderHistoryRepository.getAllUsersWithOrders()
+                _allUsersWithOrders.value = usersWithOrders
+            } catch (e: Exception) {
+                handleException(e, "Failed to fetch all users with orders")
+            }
+        }
+    }
+
 }
