@@ -252,53 +252,76 @@ class MyCommerceViewModel @Inject constructor(
 //    }
 
 
-    fun signUp(
-        username: String, email: String, password: String
-    ) {
-        if (validateForm()) {
-            db.collection(USERS).whereEqualTo("username", username).get()
-                .addOnSuccessListener { querySnapshot ->
-                    if (querySnapshot.documents.isNotEmpty()) {
-                        _popupNotification.value = Event("Username already exists")
-                        return@addOnSuccessListener
-                    } else {
-                        auth.createUserWithEmailAndPassword(email, password)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    // User created successfully
-                                    val currentUser = auth.currentUser
-                                    if (currentUser != null) {
-                                        val userId = currentUser.uid
-                                        val userMap = hashMapOf(
-                                            "uid" to userId,
-                                            "username" to username,
-                                            "email" to email
-                                        )
-                                        db.collection("admin").document(userId).set(userMap)
-                                            .addOnSuccessListener {
-                                                _popupNotification.value =
-                                                    Event("User created successfully")
+//    fun signUp(
+//        username: String, email: String, password: String
+//    ) {
+//        if (validateForm()) {
+//            db.collection(USERS).whereEqualTo("username", username).get()
+//                .addOnSuccessListener { querySnapshot ->
+//                    if (querySnapshot.documents.isNotEmpty()) {
+//                        _popupNotification.value = Event("Username already exists")
+//                        return@addOnSuccessListener
+//                    } else {
+//                        auth.createUserWithEmailAndPassword(email, password)
+//                            .addOnCompleteListener { task ->
+//                                if (task.isSuccessful) {
+//                                    // User created successfully
+//                                    val currentUser = auth.currentUser
+//                                    if (currentUser != null) {
+//                                        val userId = currentUser.uid
+//                                        val userMap = hashMapOf(
+//                                            "uid" to userId,
+//                                            "username" to username,
+//                                            "email" to email
+//                                        )
+//                                        db.collection("admin").document(userId).set(userMap)
+//                                            .addOnSuccessListener {
+//                                                _popupNotification.value =
+//                                                    Event("User created successfully")
+//
+//                                                // Save user locally using Room
+//                                                val user =
+//                                                    com.example.mycommerce.data.localDatabase.models.User(
+//                                                        userId, username, email
+//                                                    )
+//                                                viewModelScope.launch {
+//                                                    userRepository.insertUser(user)
+//                                                }
+//                                            }.addOnFailureListener { e ->
+//                                                handleException(e, "Error saving user data")
+//                                            }
+//                                    }
+//                                } else {
+//                                    handleException(task.exception, "Error creating user")
+//                                }
+//                            }
+//                    }
+//                }.addOnFailureListener {
+//                    handleException(it)
+//                }
+//        }
+//    }
 
-                                                // Save user locally using Room
-                                                val user =
-                                                    com.example.mycommerce.data.localDatabase.models.User(
-                                                        userId, username, email
-                                                    )
-                                                viewModelScope.launch {
-                                                    userRepository.insertUser(user)
-                                                }
-                                            }.addOnFailureListener { e ->
-                                                handleException(e, "Error saving user data")
-                                            }
-                                    }
-                                } else {
-                                    handleException(task.exception, "Error creating user")
-                                }
-                            }
+    fun signUp(username: String, email: String, password: String) {
+        if (validateForm()) {
+            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val currentUser = auth.currentUser
+                    currentUser?.let {
+                        val user = com.example.mycommerce.data.localDatabase.models.User(
+                            it.uid, username, email
+                        )
+                        viewModelScope.launch {
+                            userRepository.insertUser(user)
+                        }
+                        _popupNotification.value = Event("User created successfully")
                     }
-                }.addOnFailureListener {
-                    handleException(it)
+                } else {
+                    handleException(task.exception, "Error creating user")
                 }
+            }.addOnFailureListener { exception ->
+                handleException(exception)
+            }
         }
     }
 

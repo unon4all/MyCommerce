@@ -9,6 +9,7 @@ gson = "2.10.1"
 hiltAndroid = "2.51.1"
 hiltCompiler = "1.2.0"
 hiltCompilerVersion = "1.2.0"
+jbcrypt = "0.4"
 kotlin = "1.9.10"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -60,6 +61,7 @@ firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
+jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
