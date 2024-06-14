@@ -13,7 +13,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.mycommerce.components.AddNewLocationLayout
 import com.example.mycommerce.components.AdminScreen
+import com.example.mycommerce.components.LocationScreen
 import com.example.mycommerce.components.UserScreens
 import com.example.mycommerce.components.LoginScreen
 import com.example.mycommerce.components.SignupScreen
@@ -74,6 +76,14 @@ fun MyCommerceApp(
         composable(DestinationGraph.Profile.route) {
             UserProfile(navController = navController, modifier = modifier, viewModel = viewModel)
         }
+
+        composable(DestinationGraph.Location.route) {
+            LocationScreen(navController = navController, modifier = modifier, viewModel = viewModel)
+        }
+
+        composable(DestinationGraph.NewLocation.route){
+            AddNewLocationLayout(navController = navController, modifier = modifier, viewModel = viewModel)
+        }
     }
 }
 
@@ -87,4 +97,7 @@ sealed class DestinationGraph(val route: String) {
 
     data object Admin : DestinationGraph("admin")
     data object Profile : DestinationGraph("profile")
+    data object Location : DestinationGraph("location")
+    data object NewLocation : DestinationGraph("newLocation")
+
 }

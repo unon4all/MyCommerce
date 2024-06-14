@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -141,6 +142,26 @@ fun CommonTextfield(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
+        keyboardActions = keyboardActions,
+        keyboardOptions = keyboardOptions,
+        singleLine = true,
+        placeholder = { Text(text = placeholder) },
+        label = { Text(text = label) },
+    )
+}
+
+@Composable
+fun CommonOutlineTextfield(
+    modifier: Modifier = Modifier,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    keyboardActions: KeyboardActions,
+    keyboardOptions: KeyboardOptions,
+    label: String,
+    placeholder: String,
+) {
+    OutlinedTextField(
+        value = value, onValueChange = onValueChange, modifier = modifier,
         keyboardActions = keyboardActions,
         keyboardOptions = keyboardOptions,
         singleLine = true,
