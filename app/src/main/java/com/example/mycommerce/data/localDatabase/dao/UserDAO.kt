@@ -1,10 +1,11 @@
-package com.example.mycommerce.data.dao
+package com.example.mycommerce.data.localDatabase.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.mycommerce.data.localDatabase.User
+import com.example.mycommerce.data.localDatabase.models.User
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDAO {
@@ -12,8 +13,8 @@ interface UserDAO {
     suspend fun insertUser(user: User)
 
     @Query("SELECT * FROM users WHERE uid = :userId")
-    suspend fun getUser(userId: String): User?
+    suspend fun getUser(userId: String): Flow<User?>
 
     @Query("SELECT * FROM users")
-    suspend fun getAllUsers(): List<User>
+    fun getAllUsers(): Flow<List<User>>
 }
