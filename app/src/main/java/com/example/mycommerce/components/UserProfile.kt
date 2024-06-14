@@ -71,7 +71,10 @@ fun UserProfile(
                 modifier = Modifier.padding(end = 8.dp)
             ) {
                 Text(text = "Logout")
-                IconButton(onClick = { viewModel.signOut() }) {
+                IconButton(onClick = {
+                    viewModel.signOut()
+                    navController.navigate("signup")
+                }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null
                     )

@@ -4,6 +4,7 @@ import com.example.mycommerce.data.localDatabase.dao.UserDAO
 import com.example.mycommerce.data.localDatabase.models.User
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 
@@ -16,10 +17,11 @@ class UserRepository @Inject constructor(private val userDao: UserDAO) {
         userDao.insertUser(user)
     }
 
-    suspend fun getUser(userId: String): Flow<User?> {
+    fun getUser(userId: String): Flow<User?> {
         return userDao.getUser(userId)
     }
 }
+
 
 
 

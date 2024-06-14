@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
     alias(libs.plugins.google.gms.google.services)
     kotlin("plugin.serialization") version "2.0.0"
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -118,7 +119,8 @@ dependencies {
 
     //Room Database
     implementation(libs.androidx.room.runtime)
-    annotationProcessor(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
