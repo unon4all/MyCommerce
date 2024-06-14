@@ -14,7 +14,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -134,9 +133,10 @@ fun CommonTextfield(
     keyboardActions: KeyboardActions,
     keyboardOptions: KeyboardOptions,
     label: String,
-    placeholder: String
+    placeholder: String,
 ) {
-    TextField(value = value,
+    TextField(
+        value = value,
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
@@ -145,5 +145,6 @@ fun CommonTextfield(
         keyboardOptions = keyboardOptions,
         singleLine = true,
         placeholder = { Text(text = placeholder) },
-        label = { Text(text = label) })
+        label = { Text(text = label) },
+    )
 }

@@ -78,23 +78,17 @@ fun SignInContent(
             )
 
             val email by viewModel.email.collectAsState()
-            val emailError by viewModel.emailError.collectAsState()
 
             EmailTextField(
                 value = email,
                 onValueChange = viewModel::onEmailChange,
-                isError = emailError != null,
-                errorMessage = emailError
             )
 
             val password by viewModel.password.collectAsState()
-            val passwordError by viewModel.passwordError.collectAsState()
 
             PassTextField(
                 value = password,
                 onValueChange = viewModel::onPasswordChange,
-                isError = passwordError != null,
-                errorMessage = passwordError
             )
 
             Button(onClick = {
@@ -109,7 +103,6 @@ fun SignInContent(
                 spanStyle = SpanStyle(color = Color.DarkGray)
             ), modifier = Modifier.padding(8.dp), onClick = {
                 focusManager.clearFocus(force = true)
-                viewModel.resetForm()
                 navigateTo(navController, DestinationGraph.Signup)
             })
         }

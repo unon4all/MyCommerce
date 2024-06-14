@@ -40,7 +40,7 @@ class UserRepository @Inject constructor(
         return userDao.getUserByEmail(email)
     }
 
-    private fun hashPassword(password: String): String {
+    fun hashPassword(password: String): String {
         return BCrypt.hashpw(password, BCrypt.gensalt())
     }
 

@@ -98,44 +98,32 @@ fun SignUpContent(
         )
 
         val username by viewModel.username.collectAsState()
-        val usernameError by viewModel.usernameError.collectAsState()
 
         UsernameTextField(
             value = username,
             onValueChange = viewModel::onUsernameChange,
-            isError = usernameError != null,
-            errorMessage = usernameError
         )
 
         val email by viewModel.email.collectAsState()
-        val emailError by viewModel.emailError.collectAsState()
 
         EmailTextField(
             value = email,
             onValueChange = viewModel::onEmailChange,
-            isError = emailError != null,
-            errorMessage = emailError
         )
 
         val password by viewModel.password.collectAsState()
-        val passwordError by viewModel.passwordError.collectAsState()
 
         PassTextField(
             value = password,
             onValueChange = viewModel::onPasswordChange,
-            isError = passwordError != null,
-            errorMessage = passwordError
         )
 
         Button(onClick = {
             focusManager.clearFocus(force = true)
-            if (viewModel.validateForm()) {
-                // Handle successful validation
-                viewModel.signUp(
-                    username = username.text, email = email.text, password = password.text
-                )
-            }
-        }, modifier = Modifier.padding(16.dp), enabled = viewModel.validateForm()) {
+            viewModel.signUp(
+                username = username.text, email = email.text, password = password.text
+            )
+        }, modifier = Modifier.padding(16.dp)) {
             Text(text = "SIGN UP")
         }
 
@@ -159,10 +147,9 @@ fun SignUpContent(
 fun UsernameTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
-    isError: Boolean,
-    errorMessage: String?
 ) {
-    OutlinedTextField(value = value,
+    OutlinedTextField(
+        value = value,
         onValueChange = onValueChange,
         label = { Text("Username") },
         modifier = Modifier
@@ -170,18 +157,16 @@ fun UsernameTextField(
             .padding(8.dp),
         singleLine = true,
         maxLines = 1,
-        isError = isError,
-        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } })
+    )
 }
 
 @Composable
 fun EmailTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
-    isError: Boolean,
-    errorMessage: String?
 ) {
-    OutlinedTextField(value = value,
+    OutlinedTextField(
+        value = value,
         onValueChange = onValueChange,
         label = { Text("Email") },
         modifier = Modifier
@@ -189,21 +174,19 @@ fun EmailTextField(
             .padding(8.dp),
         singleLine = true,
         maxLines = 1,
-        isError = isError,
-        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } })
+    )
 }
 
 @Composable
 fun PassTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
-    isError: Boolean,
-    errorMessage: String?
 ) {
 
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    OutlinedTextField(value = value,
+    OutlinedTextField(
+        value = value,
         onValueChange = onValueChange,
         label = { Text("Password") },
         modifier = Modifier
@@ -223,8 +206,7 @@ fun PassTextField(
             }
         },
         maxLines = 1,
-        isError = isError,
-        supportingText = { errorMessage?.let { Text(text = it, color = Color.Red) } })
+    )
 }
 
 

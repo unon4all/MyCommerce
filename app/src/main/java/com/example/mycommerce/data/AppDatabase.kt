@@ -19,7 +19,7 @@ import com.example.mycommerce.data.models.User
 //    abstract fun eCommerceItemDao(): ECommerceItemDAO
 //}
 
-@Database(entities = [User::class, OrderHistoryItem::class, ECommerceItem::class], version = 4)
+@Database(entities = [User::class, OrderHistoryItem::class, ECommerceItem::class], version = 5)
 @TypeConverters(Converters::class) // Add if you have converters
 abstract class AppDatabase : RoomDatabase() {
 
