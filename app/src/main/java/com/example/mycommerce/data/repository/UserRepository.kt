@@ -28,6 +28,10 @@ class UserRepository @Inject constructor(
         return result != -1L // Return true if insertion was successful
     }
 
+    suspend fun updateUser(user: User) {
+        userDao.updateUser(user)
+    }
+
     fun getUser(userId: String): Flow<User?> {
         return userDao.getUser(userId)
     }

@@ -11,10 +11,6 @@ import com.example.mycommerce.data.models.OrderStatus
 import com.example.mycommerce.data.repository.UserRepository
 import com.example.mycommerce.data.models.User
 import com.example.mycommerce.data.repository.OrderHistoryRepository
-import com.example.mycommerce.util.NetworkUtil
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,8 +21,6 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.roundToInt
-
-const val USERS = "users"
 
 @HiltViewModel
 class MyCommerceViewModel @Inject constructor(
@@ -158,6 +152,18 @@ class MyCommerceViewModel @Inject constructor(
         _popupNotification.value = Event(message)
     }
 
+    suspend fun onFirstNameChange(newValue: TextFieldValue) {
+        val currentUser = _userId.value?.let { userRepository.getUser(it).firstOrNull() }
+        if (currentUser != null) {
+            val updatedUser = currentUser.copy(firstName = newValue.text)
+            userRepository.updateUser(updatedUser)
+        }
+    }
+
+    fun onFirstNameChangeDemo(newValue: TextFieldValue) {
+
+    }
+
     //Text field Validation
     fun onUsernameChange(newValue: TextFieldValue) {
         _username.value = newValue
@@ -217,7 +223,11 @@ class MyCommerceViewModel @Inject constructor(
                         id = UUID.randomUUID().toString(),
                         username = username,
                         email = email,
-                        passwordHash = ""
+                        firstName = "",
+                        passwordHash = "",
+                        lastName = "",
+                        phoneNumber = "",
+                        profileImage = ""
                     )
                     val success = userRepository.insertUser(newUser, password)
                     if (success) {
@@ -301,4 +311,28 @@ class MyCommerceViewModel @Inject constructor(
         }
     }
 
+
+    fun updateUserDetails(
+        firstName: String,
+        lastName: String,
+        phoneNumber: String,
+        email: String,
+        profileImage: String
+    ) {
+        viewModelScope.launch {
+            val userId = _userId.value ?: return@launch
+            val currentUser = userRepository.getUser(userId).first() ?: return@launch
+
+            val updatedUser = currentUser.copy(
+                firstName = firstName,
+                lastName = lastName,
+                phoneNumber = phoneNumber,
+                email = email,
+                profileImage = profileImage
+            )
+
+            userRepository.updateUser(updatedUser)
+            // Optionally, update any UI state or perform additional actions after update
+        }
+    }
 }
