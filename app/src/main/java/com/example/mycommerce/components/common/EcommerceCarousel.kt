@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mycommerce.data.eCommerceItemsList
+import com.example.mycommerce.data.frDatabase.eCommerceItemsList
 import kotlinx.coroutines.delay
 
 @Composable
@@ -60,7 +60,7 @@ fun IndicatorDots(isSelected: Boolean, modifier: Modifier) {
 @Preview
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MyApp(modifier: Modifier = Modifier) {
+fun AppImageSlider(modifier: Modifier = Modifier) {
 
     // Select any 5 items from the list randomly
     val randomList = eCommerceItemsList.shuffled().take(5)

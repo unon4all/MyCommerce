@@ -17,6 +17,7 @@ import com.example.mycommerce.components.AdminScreen
 import com.example.mycommerce.components.UserScreens
 import com.example.mycommerce.components.LoginScreen
 import com.example.mycommerce.components.SignupScreen
+import com.example.mycommerce.components.UserProfile
 import com.example.mycommerce.components.common.NotificationMessage
 import com.example.mycommerce.ui.theme.MyCommerceTheme
 import com.example.mycommerce.viewModels.MyCommerceViewModel
@@ -69,6 +70,10 @@ fun MyCommerceApp(
         composable(DestinationGraph.Admin.route) {
             AdminScreen(navController = navController, modifier = modifier, viewModel = viewModel)
         }
+
+        composable(DestinationGraph.Profile.route) {
+            UserProfile(navController = navController, modifier = modifier, viewModel = viewModel)
+        }
     }
 }
 
@@ -81,4 +86,5 @@ sealed class DestinationGraph(val route: String) {
     }
 
     data object Admin : DestinationGraph("admin")
+    data object Profile : DestinationGraph("profile")
 }

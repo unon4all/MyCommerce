@@ -24,6 +24,7 @@ lifecycleViewmodelKtx = "2.8.2"
 lottieCompose = "6.3.0"
 materialIconsExtended = "1.6.8"
 navigationFragmentKtx = "2.7.7"
+roomRuntime = "2.6.1"
 safeargs = "2.7.7"
 daggerHilt = "2.48"
 googleAndroidLibrariesMapsplatformSecretsGradlePlugin = "2.0.1"
@@ -45,6 +46,8 @@ androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-view
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationFragmentKtx" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }

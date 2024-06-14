@@ -2,12 +2,12 @@ package com.example.mycommerce.viewModels
 
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import com.example.mycommerce.data.ECommerceItem
+import com.example.mycommerce.data.frDatabase.ECommerceItem
 import com.example.mycommerce.data.Event
-import com.example.mycommerce.data.OrderHistoryItem
-import com.example.mycommerce.data.OrderStatus
-import com.example.mycommerce.data.User
-import com.example.mycommerce.data.eCommerceItemsList
+import com.example.mycommerce.data.frDatabase.OrderHistoryItem
+import com.example.mycommerce.data.frDatabase.OrderStatus
+import com.example.mycommerce.data.frDatabase.User
+import com.example.mycommerce.data.frDatabase.eCommerceItemsList
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage

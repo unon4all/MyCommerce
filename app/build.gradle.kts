@@ -116,6 +116,10 @@ dependencies {
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.lottie.compose)
 
+    //Room Database
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

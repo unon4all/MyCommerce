@@ -1,8 +1,13 @@
 package com.example.mycommerce.components.common
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -18,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -121,4 +127,26 @@ fun CommonImage(
         fallback = defaultPainter,
         alignment = Alignment.Center
     )
+}
+
+@Composable
+fun CommonTextfield(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier,
+    keyboardActions: KeyboardActions,
+    keyboardOptions: KeyboardOptions,
+    label: String,
+    placeholder: String
+) {
+    TextField(value = value,
+        onValueChange = onValueChange,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        keyboardActions = keyboardActions,
+        keyboardOptions = keyboardOptions,
+        singleLine = true,
+        placeholder = { Text(text = placeholder) },
+        label = { Text(text = label) })
 }

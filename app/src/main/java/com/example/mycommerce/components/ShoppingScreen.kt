@@ -17,11 +17,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,41 +41,43 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mycommerce.components.common.CommonDivider
 import com.example.mycommerce.components.common.CommonImage
-import com.example.mycommerce.components.common.MyApp
-import com.example.mycommerce.data.ECommerceItem
-import com.example.mycommerce.data.eCommerceItemsList
+import com.example.mycommerce.components.common.AppImageSlider
+import com.example.mycommerce.data.frDatabase.ECommerceItem
+import com.example.mycommerce.data.frDatabase.eCommerceItemsList
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingScreen(
     viewModel: MyCommerceViewModel,
     navController: NavController,
 ) {
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(title = {
+                Text(text = "MyCommerce")
+            }, actions = {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = "")
+                }
+                IconButton(onClick = { navController.navigate("profile") }) {
+                    Icon(imageVector = Icons.Default.Person, contentDescription = "")
+                }
+            }, modifier = Modifier.padding(end = 8.dp))
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding(), start = 16.dp, end = 16.dp)
         ) {
-            Text(text = "Shopping", fontWeight = FontWeight.Bold, fontSize = 32.sp)
-            TextButton(onClick = {
-                viewModel.signOut()
-                navController.navigate("signin")
-            }) {
-                Text(text = "Click here to Logout", fontSize = 14.sp, color = Color.LightGray)
+            Box(modifier = Modifier.aspectRatio(16f / 9f)) {
+                AppImageSlider(modifier = Modifier.fillMaxSize())
             }
+            CommonDivider()
+            ECommerceItemList(itemList = eCommerceItemsList, viewModel = viewModel)
         }
-        CommonDivider()
-        Box(modifier = Modifier.aspectRatio(16f / 9f)) {
-            MyApp(modifier = Modifier.fillMaxSize())
-        }
-        CommonDivider()
-        ECommerceItemList(itemList = eCommerceItemsList, viewModel = viewModel)
     }
 }
 
