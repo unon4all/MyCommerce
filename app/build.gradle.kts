@@ -32,8 +32,7 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -109,15 +108,13 @@ dependencies {
 //    implementation(libs.kotlinx.parcelize)
 
     implementation(libs.kotlinx.serialization.json)
-
-    implementation( libs.gson)
-
+    implementation(libs.gson)
     implementation(libs.coil.compose)
 
     //Icons Extended
-    implementation("androidx.compose.material:material-icons-extended:1.5.3")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
-    implementation("com.airbnb.android:lottie-compose:6.3.0")
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.lottie.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
