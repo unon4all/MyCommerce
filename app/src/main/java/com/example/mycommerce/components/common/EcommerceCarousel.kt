@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mycommerce.data.frDatabase.eCommerceItemsList
+import com.example.mycommerce.data.models.eCommerceItemsList
 import kotlinx.coroutines.delay
 
 @Composable

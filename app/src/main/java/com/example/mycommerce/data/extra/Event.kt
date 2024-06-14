@@ -1,4 +1,4 @@
-package com.example.mycommerce.data
+package com.example.mycommerce.data.extra
 
 open class Event<out T>(private val content: T) {
 

@@ -3,13 +3,14 @@ package com.example.mycommerce.viewModels
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mycommerce.data.frDatabase.ECommerceItem
-import com.example.mycommerce.data.Event
-import com.example.mycommerce.data.frDatabase.OrderHistoryItem
-import com.example.mycommerce.data.frDatabase.OrderStatus
-import com.example.mycommerce.data.frDatabase.User
-import com.example.mycommerce.data.frDatabase.eCommerceItemsList
-import com.example.mycommerce.data.localDatabase.repository.UserRepository
+import com.example.mycommerce.data.extra.Event
+import com.example.mycommerce.data.models.ECommerceItem
+import com.example.mycommerce.data.models.OrderHistoryItem
+import com.example.mycommerce.data.models.OrderStatus
+import com.example.mycommerce.data.repository.UserRepository
+import com.example.mycommerce.data.models.User
+import com.example.mycommerce.data.repository.OrderHistoryRepository
+import com.example.mycommerce.util.NetworkUtil
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -17,7 +18,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -25,10 +29,8 @@ const val USERS = "users"
 
 @HiltViewModel
 class MyCommerceViewModel @Inject constructor(
-    private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore,
-    private val storage: FirebaseStorage,
     private val userRepository: UserRepository,
+    private val orderHistoryRepository: OrderHistoryRepository,
 ) : ViewModel() {
 
     private val _popupNotification = MutableStateFlow<Event<String>?>(null)
@@ -66,68 +68,60 @@ class MyCommerceViewModel @Inject constructor(
     val allUsersWithOrders: StateFlow<List<Pair<User, List<OrderHistoryItem>>>> =
         _allUsersWithOrders
 
+    private val _userId = MutableStateFlow<String?>(null)
+    val userId: StateFlow<String?> = _userId
+
+    private val _isUserSignedIn = MutableStateFlow(false)
+    val isUserSignedIn: StateFlow<Boolean> = _isUserSignedIn
+
     fun fetchAllUsersWithOrders() {
-        db.collection("admin").get().addOnSuccessListener { querySnapshot ->
-            val usersWithOrders = mutableListOf<Pair<User, List<OrderHistoryItem>>>()
-            val userDocuments = querySnapshot.documents
 
-            userDocuments.forEach { document ->
-                val userId = document.id
-                val userData = document.data
-                if (userData != null) {
-                    val username = userData["username"] as? String
-                    val email = userData["email"] as? String
-
-                    fetchUserOrderHistory(userId) { orderHistoryList ->
-                        val user = User(userId, username ?: "", email ?: "")
-                        usersWithOrders.add(user to orderHistoryList)
-                        _allUsersWithOrders.value = usersWithOrders.toList()
-                    }
-                }
-            }
-        }.addOnFailureListener { exception ->
-            handleException(exception, "Error fetching users with orders")
-        }
     }
 
     private fun fetchUserOrderHistory(userId: String, callback: (List<OrderHistoryItem>) -> Unit) {
-        db.collection("users").document(userId).get().addOnSuccessListener { documentSnapshot ->
-            val orderHistoryMap =
-                documentSnapshot.get("orderHistory") as? List<Map<String, Any>> ?: emptyList()
-            val orderHistoryList = orderHistoryMap.map { orderMap ->
-                val itemIds = orderMap["itemIds"] as List<String>
-                val items = itemIds.mapNotNull { itemId -> getItemDetails(itemId) }
-                OrderHistoryItem(
-                    items = items,
-                    status = OrderStatus.valueOf(orderMap["status"] as String),
-                    totalPrice = (orderMap["totalPrice"] as Long).toInt()
-                )
+
+    }
+
+    // Function to update user ID and signed-in state
+    private fun updateUserIdAndSignInState(userId: String?, isSignedIn: Boolean) {
+        _userId.value = userId
+        _isUserSignedIn.value = isSignedIn
+    }
+
+    fun placeOrder() {
+        if (_isUserSignedIn.value) {
+            val userId = _userId.value ?: return  // Ensure userId is not null
+            val items = _cartItems.value
+            val totalPrice = calculateTotalPrice()
+            val orderStatus = OrderStatus.PLACED
+
+            val orderHistoryItem = OrderHistoryItem(
+                userId = userId, items = items, status = orderStatus, totalPrice = totalPrice
+            )
+
+            viewModelScope.launch {
+                try {
+                    // Save order to local database
+                    orderHistoryRepository.addOrderHistoryItem(orderHistoryItem)
+
+                    // Update local order status and history
+                    _orderStatus.value = orderStatus
+                    val updatedOrderHistory = _orderHistory.value.toMutableList()
+                    updatedOrderHistory.add(orderHistoryItem)
+                    _orderHistory.value = updatedOrderHistory
+
+                    // Clear the cart after placing the order
+                    clearCart()
+                } catch (e: Exception) {
+                    handleException(e, "Failed to place order")
+                }
             }
-            callback(orderHistoryList)
-        }.addOnFailureListener { exception ->
-            handleException(exception, "Error fetching order history")
+        } else {
+            // Handle case where user is not signed in
+            _popupNotification.value = Event("Please sign in to place an order")
         }
     }
 
-
-    fun placeOrder() {
-        // Assuming order placement logic here, then update order status
-        _orderStatus.value = OrderStatus.PLACED
-
-        val orderHistoryList = _orderHistory.value.toMutableList()
-
-        // Add current cart items to order history
-        orderHistoryList.add(
-            OrderHistoryItem(
-                _cartItems.value, OrderStatus.PLACED, calculateTotalPrice()
-            )
-        )
-        _orderHistory.value = orderHistoryList
-        saveOrderHistoryToFirebase()
-
-        // Clear the cart after placing the order
-        clearCart()
-    }
 
     private fun clearCart() {
         _cartItems.value = emptyList()
@@ -210,142 +204,55 @@ class MyCommerceViewModel @Inject constructor(
         return _usernameError.value == null && _emailError.value == null && _passwordError.value == null
     }
 
-//    fun signUp(
-//        username: String, email: String, password: String
-//    ) {
-//        if (validateForm()) {
-//            db.collection(USERS).whereEqualTo("username", username).get()
-//                .addOnSuccessListener { querySnapshot ->
-//                    if (querySnapshot.documents.isNotEmpty()) {
-//                        _popupNotification.value = Event("Username already exists")
-//                        return@addOnSuccessListener
-//                    } else {
-//                        auth.createUserWithEmailAndPassword(email, password)
-//                            .addOnCompleteListener { task ->
-//                                if (task.isSuccessful) {
-//                                    // User created successfully
-//                                    val currentUser = auth.currentUser
-//                                    if (currentUser != null) {
-//                                        val userId = currentUser.uid
-//                                        val userMap = hashMapOf(
-//                                            "uid" to userId,
-//                                            "username" to username,
-//                                            "email" to email
-//                                        )
-//                                        db.collection("admin").document(userId).set(userMap)
-//                                            .addOnSuccessListener {
-//                                                _popupNotification.value =
-//                                                    Event("User created successfully")
-//                                            }.addOnFailureListener { e ->
-//                                                handleException(e, "Error saving user data")
-//                                            }
-//                                    }
-//                                } else {
-//                                    handleException(task.exception, "Error creating user")
-//                                }
-//                            }
-//                    }
-//                }.addOnFailureListener {
-//                    handleException(it)
-//                }
-//        }
-//    }
-
-
-//    fun signUp(
-//        username: String, email: String, password: String
-//    ) {
-//        if (validateForm()) {
-//            db.collection(USERS).whereEqualTo("username", username).get()
-//                .addOnSuccessListener { querySnapshot ->
-//                    if (querySnapshot.documents.isNotEmpty()) {
-//                        _popupNotification.value = Event("Username already exists")
-//                        return@addOnSuccessListener
-//                    } else {
-//                        auth.createUserWithEmailAndPassword(email, password)
-//                            .addOnCompleteListener { task ->
-//                                if (task.isSuccessful) {
-//                                    // User created successfully
-//                                    val currentUser = auth.currentUser
-//                                    if (currentUser != null) {
-//                                        val userId = currentUser.uid
-//                                        val userMap = hashMapOf(
-//                                            "uid" to userId,
-//                                            "username" to username,
-//                                            "email" to email
-//                                        )
-//                                        db.collection("admin").document(userId).set(userMap)
-//                                            .addOnSuccessListener {
-//                                                _popupNotification.value =
-//                                                    Event("User created successfully")
-//
-//                                                // Save user locally using Room
-//                                                val user =
-//                                                    com.example.mycommerce.data.localDatabase.models.User(
-//                                                        userId, username, email
-//                                                    )
-//                                                viewModelScope.launch {
-//                                                    userRepository.insertUser(user)
-//                                                }
-//                                            }.addOnFailureListener { e ->
-//                                                handleException(e, "Error saving user data")
-//                                            }
-//                                    }
-//                                } else {
-//                                    handleException(task.exception, "Error creating user")
-//                                }
-//                            }
-//                    }
-//                }.addOnFailureListener {
-//                    handleException(it)
-//                }
-//        }
-//    }
-
     fun signUp(username: String, email: String, password: String) {
-        if (validateForm()) {
-            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val currentUser = auth.currentUser
-                    currentUser?.let {
-                        val user = com.example.mycommerce.data.localDatabase.models.User(
-                            it.uid, username, email
-                        )
-                        viewModelScope.launch {
-                            userRepository.insertUser(user)
-                        }
-                        _popupNotification.value = Event("User created successfully")
+        viewModelScope.launch {
+            if (validateForm()) {
+                val existingUser = userRepository.getUserByEmail(email).firstOrNull()
+                if (existingUser == null) {
+                    val newUser = User(
+                        id = UUID.randomUUID().toString(),
+                        username = username,
+                        email = email,
+                        passwordHash = ""
+                    )
+                    val success = userRepository.insertUser(newUser, password)
+                    if (success) {
+                        _popupNotification.value = Event("Sign-up successful")
+                        updateSignedInState(true)
+                    } else {
+                        _popupNotification.value = Event("Sign-up failed")
                     }
                 } else {
-                    handleException(task.exception, "Error creating user")
+                    _popupNotification.value = Event("Email already exists")
                 }
-            }.addOnFailureListener { exception ->
-                handleException(exception)
             }
         }
     }
 
 
     fun logIn(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                // User signed in successfully
-                _popupNotification.value = Event("Signed in successfully")
-                fetchOrderHistory() // Fetch order history for the logged-in user
-            } else {
-                handleException(task.exception, "Error signing in")
+        viewModelScope.launch {
+            userRepository.getUserByEmail(email).collect { user ->
+                if (user != null && userRepository.validatePassword(password, user.passwordHash)) {
+                    _popupNotification.value = Event("Login successful")
+                    updateUserIdAndSignInState(user.id, true)
+                    updateSignedInState(true)
+                    fetchOrderHistory()
+                    // Handle successful login
+                } else {
+                    _popupNotification.value = Event("Invalid email or password")
+                }
             }
-        }.addOnFailureListener {
-            handleException(it)
         }
     }
 
-    fun isUserSignedIn(): Boolean {
-        return auth.currentUser != null
+    private fun updateSignedInState(isSignedIn: Boolean) {
+        _isUserSignedIn.value = isSignedIn
     }
 
+    // Function to sign out user
     fun signOut() {
-        auth.signOut()
+        updateUserIdAndSignInState(null, false)
         clearCart()
         _orderHistory.value = emptyList()
         _orderStatus.value = null
@@ -362,54 +269,21 @@ class MyCommerceViewModel @Inject constructor(
         _passwordError.value = null
     }
 
-    private fun saveOrderHistoryToFirebase() {
-        val currentUser = auth.currentUser ?: return
-        val userId = currentUser.uid
-
-        val orderHistoryMap = _orderHistory.value.map { order ->
-            mapOf(
-                "itemIds" to order.items.map { it.id },
-                "status" to order.status.name,
-                "totalPrice" to order.totalPrice
-            )
-        }
-
-        db.collection("users").document(userId).set(mapOf("orderHistory" to orderHistoryMap))
-            .addOnSuccessListener {
-                _popupNotification.value = Event("Order history saved successfully")
-            }.addOnFailureListener { exception ->
-                handleException(exception, "Error saving order history")
-            }
-    }
 
     private fun fetchOrderHistory() {
-        val currentUser = auth.currentUser ?: return
-        val userId = currentUser.uid
-
-        db.collection("users").document(userId).get().addOnSuccessListener { documentSnapshot ->
-            if (documentSnapshot.exists()) {
-                val orderHistoryMap =
-                    documentSnapshot.get("orderHistory") as? List<Map<String, Any>>
-                if (orderHistoryMap != null) {
-                    val orderHistoryList = orderHistoryMap.map { orderMap ->
-                        val itemIds = orderMap["itemIds"] as List<String>
-                        val items = itemIds.mapNotNull { itemId -> getItemDetails(itemId) }
-                        OrderHistoryItem(
-                            items = items,
-                            status = OrderStatus.valueOf(orderMap["status"] as String),
-                            totalPrice = (orderMap["totalPrice"] as Long).toInt()
-                        )
-                    }
-                    _orderHistory.value = orderHistoryList
-                }
+        viewModelScope.launch {
+            try {
+                val userId = _userId.value ?: return@launch
+                val history = orderHistoryRepository.getOrderHistory(userId).first()
+                _orderHistory.value = history
+            } catch (e: Exception) {
+                handleException(e, "Failed to fetch order history")
             }
-        }.addOnFailureListener { exception ->
-            handleException(exception, "Error fetching order history")
         }
     }
 
 
     private fun getItemDetails(itemId: String): ECommerceItem? {
-        return eCommerceItemsList.find { it.id == itemId }
+        return _cartItems.value.find { it.id == itemId }
     }
 }

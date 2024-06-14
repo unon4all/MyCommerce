@@ -1,7 +1,7 @@
-package com.example.mycommerce.data.localDatabase
+package com.example.mycommerce.data.extra
 
 import androidx.room.TypeConverter
-import com.example.mycommerce.data.localDatabase.models.ECommerceItem
+import com.example.mycommerce.data.models.ECommerceItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 

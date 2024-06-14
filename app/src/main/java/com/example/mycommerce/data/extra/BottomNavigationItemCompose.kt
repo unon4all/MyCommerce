@@ -1,4 +1,4 @@
-package com.example.mycommerce.data
+package com.example.mycommerce.data.extra
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector

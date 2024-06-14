@@ -21,7 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import com.example.mycommerce.data.BottomNavigationItemCompose
+import com.example.mycommerce.data.extra.BottomNavigationItemCompose
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 
 

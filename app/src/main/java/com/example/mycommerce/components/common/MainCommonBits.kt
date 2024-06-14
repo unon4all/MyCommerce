@@ -46,9 +46,7 @@ fun NotificationMessage(viewModel: MyCommerceViewModel) {
 
 @Composable
 fun CommonDivider(
-    thickness: Dp = 1.dp,
-    color: Color = Color.LightGray,
-    alpha:Float = 0.3f
+    thickness: Dp = 1.dp, color: Color = Color.LightGray, alpha: Float = 0.3f
 ) {
     HorizontalDivider(
         color = color,
@@ -93,10 +91,9 @@ fun navigateTo(navController: NavController, destination: DestinationGraph) {
 @Composable
 fun CheckedSignIn(vm: MyCommerceViewModel, navController: NavController) {
     var alreadySignedIn by remember { mutableStateOf(false) }
-    val signInState by rememberUpdatedState(newValue = mutableStateOf(vm.isUserSignedIn()))
 
-    LaunchedEffect(signInState) {
-        if (signInState.value && !alreadySignedIn) {
+    LaunchedEffect(vm.isUserSignedIn.collectAsState().value) {
+        if (vm.isUserSignedIn.value && !alreadySignedIn) {
             alreadySignedIn = true
             navController.navigate(DestinationGraph.Home.createRoute(0)) {
                 popUpTo(navController.graph.startDestinationId) {

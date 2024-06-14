@@ -99,9 +99,7 @@ fun SignInContent(
 
             Button(onClick = {
                 focusManager.clearFocus(force = true)
-                viewModel.logIn(
-                    email = email.text, password = password.text
-                )
+                viewModel.logIn(email = email.text, password = password.text)
             }, modifier = Modifier.padding(16.dp)) {
                 Text(text = "LOGIN")
             }

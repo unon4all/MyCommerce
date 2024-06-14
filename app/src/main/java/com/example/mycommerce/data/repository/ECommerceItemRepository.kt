@@ -1,7 +1,7 @@
-package com.example.mycommerce.data.localDatabase.repository
+package com.example.mycommerce.data.repository
 
-import com.example.mycommerce.data.localDatabase.dao.ECommerceItemDAO
-import com.example.mycommerce.data.localDatabase.models.ECommerceItem
+import com.example.mycommerce.data.dao.ECommerceItemDAO
+import com.example.mycommerce.data.models.ECommerceItem
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -14,7 +14,7 @@ class ECommerceItemRepository @Inject constructor(private val eCommerceItemDao: 
      * @param itemId ID of the item to retrieve.
      * @return Flow representing the selected item.
      */
-    suspend fun getItem(itemId: String): Flow<ECommerceItem?> {
+    fun getItem(itemId: String): Flow<ECommerceItem?> {
         return eCommerceItemDao.getItem(itemId)
     }
 

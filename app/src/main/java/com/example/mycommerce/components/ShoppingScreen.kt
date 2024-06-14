@@ -42,8 +42,8 @@ import androidx.navigation.NavController
 import com.example.mycommerce.components.common.CommonDivider
 import com.example.mycommerce.components.common.CommonImage
 import com.example.mycommerce.components.common.AppImageSlider
-import com.example.mycommerce.data.frDatabase.ECommerceItem
-import com.example.mycommerce.data.frDatabase.eCommerceItemsList
+import com.example.mycommerce.data.models.ECommerceItem
+import com.example.mycommerce.data.models.eCommerceItemsList
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

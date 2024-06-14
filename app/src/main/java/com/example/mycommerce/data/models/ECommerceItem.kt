@@ -1,8 +1,11 @@
-package com.example.mycommerce.data.frDatabase
+package com.example.mycommerce.data.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
+@Entity(tableName = "ecommerce_items")
 data class ECommerceItem(
-    val id: String,
+    @PrimaryKey val id: String,
     val imageUrl: String,
     val itemName: String,
     val itemPrice: Double,

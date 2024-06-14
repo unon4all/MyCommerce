@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mycommerce.components.common.CommonDivider
-import com.example.mycommerce.data.frDatabase.OrderHistoryItem
+import com.example.mycommerce.data.models.OrderHistoryItem
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 
 @Composable
