@@ -95,7 +95,11 @@ fun LocationScreen(
             ) {
                 if (addressList.isNotEmpty()) {
                     addressList.forEach { address ->
-                        AddressItem(address = address)
+                        AddressItem(address = address, onItemClick = { selectedAddress ->
+                            navController.navigate(
+                                DestinationGraph.NewLocation.createRoute(selectedAddress.id.toString())
+                            )
+                        })
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 } else {
@@ -110,12 +114,15 @@ fun LocationScreen(
     }
 }
 
+
 @Composable
-fun AddressItem(address: Address) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+fun AddressItem(
+    address: Address, onItemClick: (Address) -> Unit // Callback to handle item click
+) {
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp),
+        onClick = { onItemClick(address) } // Pass the address when clicked
     ) {
         Column(
             modifier = Modifier.padding(16.dp)

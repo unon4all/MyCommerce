@@ -224,5 +224,16 @@ sealed class DestinationGraph(val route: String) {
     data object Admin : DestinationGraph("admin")
     data object Profile : DestinationGraph("profile")
     data object Location : DestinationGraph("location")
-    data object NewLocation : DestinationGraph("newLocation")
+    data object NewLocation : DestinationGraph("newLocation") {
+        private const val ADDRESS_ID_KEY = "addressId"
+
+        fun createRoute(addressId: String? = null): String {
+            return if (addressId != null) {
+                "newLocation?$ADDRESS_ID_KEY=$addressId"
+            } else {
+                "newLocation"
+            }
+        }
+    }
 }
+
