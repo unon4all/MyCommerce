@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
@@ -153,13 +154,15 @@ fun CommonTextfield(
 @Composable
 fun CommonOutlineTextfield(
     modifier: Modifier = Modifier,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    value: String,
+    onValueChange: (String) -> Unit,
     keyboardActions: KeyboardActions,
     keyboardOptions: KeyboardOptions,
     label: String,
     placeholder: String,
 ) {
+    val focusManager = LocalFocusManager.current
+
     OutlinedTextField(
         value = value, onValueChange = onValueChange, modifier = modifier,
         keyboardActions = keyboardActions,

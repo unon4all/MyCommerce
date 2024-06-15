@@ -1,5 +1,6 @@
 package com.example.mycommerce.components
 
+import android.Manifest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,39 +14,48 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.OtherHouses
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.mycommerce.DestinationGraph
+import com.example.mycommerce.components.common.CommonOutlineTextfield
+import com.example.mycommerce.data.models.Address
 import com.example.mycommerce.viewModels.MyCommerceViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,152 +63,286 @@ import com.example.mycommerce.viewModels.MyCommerceViewModel
 fun LocationScreen(
     modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
 ) {
+    val addressList by viewModel.addressList.collectAsState()
 
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        TopAppBar(
-            title = { Text(text = "My Addresses") },
-            navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
-                    )
-                }
-            },
-        )
+        TopAppBar(title = { Text(text = "My Addresses") }, navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
+                )
+            }
+        })
+    }, floatingActionButton = {
+        FloatingActionButton(
+            onClick = {
+                navController.navigate(DestinationGraph.NewLocation.route)
+            }, modifier = Modifier.padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Address")
+        }
     }) { innerPadding ->
         Box(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding(),
-            contentAlignment = Alignment.Center
+                .imePadding()
+                .fillMaxSize()
         ) {
-            Button(onClick = { navController.navigate(DestinationGraph.NewLocation.route) }) {
-                Text(
-                    text = "Add New Location", modifier = Modifier.padding(8.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                if (addressList.isNotEmpty()) {
+                    addressList.forEach { address ->
+                        AddressItem(address = address)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                } else {
+                    Text(
+                        text = "No addresses found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddressItem(address: Address) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Full Name: ${address.fullName}", style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Phone Number: ${address.phoneNumber}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = "Address: ${address.address}", style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun AddNewLocationLayout(
-    modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    viewModel: MyCommerceViewModel,
+    fetchLocation: (onLocationFetched: (Address) -> Unit) -> Unit,
+    openSettings: () -> Unit
 ) {
+    var permissionResultText by remember { mutableStateOf("Requesting location permission...") }
+
+    val permissionState = rememberMultiplePermissionsState(
+        listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+    )
+
+    val userId by viewModel.userId.collectAsState()
 
     var address by remember {
-        mutableStateOf(Address())
+        mutableStateOf(Address(userId = userId))
+    }
+
+    val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(permissionState) {
+        permissionState.launchMultiplePermissionRequest()
+    }
+
+    LaunchedEffect(permissionState.allPermissionsGranted) {
+        if (permissionState.allPermissionsGranted) {
+            fetchLocation { fetchedAddress ->
+                address = fetchedAddress
+                permissionResultText = "Permission Granted"
+            }
+        } else {
+            permissionResultText = "Permission Denied :("
+        }
     }
 
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        TopAppBar(
-            title = { Text(text = "My Addresses") },
-            navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
-                    )
-                }
-            },
-        )
+        TopAppBar(title = { Text(text = "Add New Address") }, navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
+                )
+            }
+        })
     }) { innerPadding ->
         Box(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding(),
+                .imePadding()
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Column(
-                Modifier
-                    .fillMaxSize()
+                modifier = Modifier
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
             ) {
-                OutlinedTextField(
+                CommonOutlineTextfield(
                     value = address.fullName,
                     onValueChange = { address = address.copy(fullName = it) },
-                    label = { Text("Full Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Full Name",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus(force = true)
+                    }),
+                    placeholder = "Enter Full Name"
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                CommonOutlineTextfield(
                     value = address.phoneNumber,
                     onValueChange = { address = address.copy(phoneNumber = it) },
-                    label = { Text("Phone Number") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Phone Number",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done, keyboardType = KeyboardType.Number
+                    ),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus(force = true)
+                    }),
+                    placeholder = "Enter Phone Number"
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                CommonOutlineTextfield(
                     value = address.alternateNumber,
                     onValueChange = { address = address.copy(alternateNumber = it) },
-                    label = { Text("Alternate Number") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Alternate Phone Number",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done, keyboardType = KeyboardType.Number
+                    ),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus(force = true)
+                    }),
+                    placeholder = "Enter Alternate Phone Number"
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
-                    Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
+                    CommonOutlineTextfield(
                         value = address.pinCode,
                         onValueChange = { address = address.copy(pinCode = it) },
-                        label = { Text("Pin Code") },
-                        modifier = Modifier.weight(1f)
+                        label = "Pin Code",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done, keyboardType = KeyboardType.Number
+                        ),
+                        keyboardActions = KeyboardActions(onDone = {
+                            focusManager.clearFocus(force = true)
+                        }),
+                        placeholder = "Enter Pin Code"
                     )
                     Button(
-                        onClick = { /*TODO*/ },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(4.dp)
+                        onClick = {
+                            if (permissionState.allPermissionsGranted) {
+                                fetchLocation { fetchedAddress ->
+                                    address = fetchedAddress
+                                }
+                            } else {
+                                permissionResultText = "Permission Denied :("
+                                openSettings()
+                            }
+                        }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(4.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.MyLocation, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = "Use My Location"
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = "Use My Location", fontSize = 12.sp)
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
-                    Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(32.dp)
                 ) {
-                    OutlinedTextField(
+                    CommonOutlineTextfield(
                         value = address.state,
                         onValueChange = { address = address.copy(state = it) },
-                        label = { Text("State") },
-                        modifier = Modifier.weight(1f)
+                        label = "State",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            focusManager.clearFocus(force = true)
+                        }),
+                        placeholder = "Enter State"
                     )
-                    OutlinedTextField(value = address.city,
+                    CommonOutlineTextfield(
+                        value = address.city,
                         onValueChange = { address = address.copy(city = it) },
-                        label = { Text("City") },
-                        modifier = Modifier.weight(1f)
+                        label = "City",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            focusManager.clearFocus(force = true)
+                        }),
+                        placeholder = "Enter City"
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                CommonOutlineTextfield(
                     value = address.address,
                     onValueChange = { address = address.copy(address = it) },
-                    label = { Text("Address") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Address",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus(force = true)
+                    }),
+                    placeholder = "Enter Address"
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                CommonOutlineTextfield(
                     value = address.areaName,
                     onValueChange = { address = address.copy(areaName = it) },
-                    label = { Text("Area Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Area Name",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus(force = true)
+                    }),
+                    placeholder = "Enter Area Name"
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                CommonOutlineTextfield(
                     value = address.landmark,
                     onValueChange = { address = address.copy(landmark = it) },
-                    label = { Text("Landmark") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Landmark",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus(force = true)
+                    }),
+                    placeholder = "Enter Landmark"
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Type of Address")
@@ -229,8 +373,11 @@ fun AddNewLocationLayout(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = { /* Handle save logic */ },
-                    modifier = Modifier
+                    onClick = {
+                        // Handle save logic using viewModel
+                        viewModel.addAddress(address)
+                        navController.popBackStack()
+                    }, modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
@@ -240,46 +387,3 @@ fun AddNewLocationLayout(
         }
     }
 }
-
-// Define the Address data class
-data class Address(
-    var fullName: String = "",
-    var phoneNumber: String = "",
-    var alternateNumber: String = "",
-    var pinCode: String = "",
-    var state: String = "",
-    var city: String = "",
-    var address: String = "",
-    var areaName: String = "",
-    var landmark: String = "",
-    var typeOfAddress: Int = 0 // 0 for Home, 1 for Office, 2 for Other
-)
-
-// Define a custom Saver for the Address class
-val AddressSaver: Saver<Address, Any> = listSaver(save = {
-    listOf(
-        it.fullName,
-        it.phoneNumber,
-        it.alternateNumber,
-        it.pinCode,
-        it.state,
-        it.city,
-        it.address,
-        it.areaName,
-        it.landmark,
-        it.typeOfAddress
-    )
-}, restore = {
-    Address(
-        fullName = it[0] as String,
-        phoneNumber = it[1] as String,
-        alternateNumber = it[2] as String,
-        pinCode = it[3] as String,
-        state = it[4] as String,
-        city = it[5] as String,
-        address = it[6] as String,
-        areaName = it[7] as String,
-        landmark = it[8] as String,
-        typeOfAddress = it[9] as Int
-    )
-})
