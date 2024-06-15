@@ -18,25 +18,23 @@ import javax.inject.Singleton
 object DatabaseModule {
 
     @Provides
-    @Singleton
     fun provideDatabase(@ApplicationContext context: Context) = Room.databaseBuilder(
         context, AppDatabase::class.java, "my_commerce_db"
     ).fallbackToDestructiveMigration().build()
 
-    @Singleton
     @Provides
     fun provideUserDao(db: AppDatabase) = db.userDao()
 
-    @Singleton
     @Provides
     fun provideOrderHistoryDao(db: AppDatabase) = db.orderHistoryDao()
 
-    @Singleton
     @Provides
     fun provideECommerceItemDao(db: AppDatabase) = db.eCommerceItemDao()
 
     @Provides
-    @Singleton
+    fun provideAddressDao(db: AppDatabase) = db.addressDao()
+
+    @Provides
     fun provideSharedPreferences(@ApplicationContext appContext: Context): SharedPreferences {
         return appContext.getSharedPreferences("my_app_pref", Context.MODE_PRIVATE)
     }

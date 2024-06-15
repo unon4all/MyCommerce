@@ -1,16 +1,19 @@
 package com.example.mycommerce.viewModels
 
+
 import android.content.SharedPreferences
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mycommerce.data.extra.Event
+import com.example.mycommerce.data.models.Address
 import com.example.mycommerce.data.models.ECommerceItem
 import com.example.mycommerce.data.models.OrderHistoryItem
 import com.example.mycommerce.data.models.OrderStatus
-import com.example.mycommerce.data.repository.UserRepository
 import com.example.mycommerce.data.models.User
+import com.example.mycommerce.data.repository.AddressRepository
 import com.example.mycommerce.data.repository.OrderHistoryRepository
+import com.example.mycommerce.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +30,9 @@ class MyCommerceViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val orderHistoryRepository: OrderHistoryRepository,
     private val sharedPreferences: SharedPreferences,
+    private val addressRepository: AddressRepository
 ) : ViewModel() {
+
 
     private val _popupNotification = MutableStateFlow<Event<String>?>(null)
     val popupNotification: StateFlow<Event<String>?> get() = _popupNotification.asStateFlow()
@@ -58,6 +63,9 @@ class MyCommerceViewModel @Inject constructor(
 
     private val _orderHistory = MutableStateFlow<List<OrderHistoryItem>>(emptyList())
     val orderHistory: StateFlow<List<OrderHistoryItem>> get() = _orderHistory
+
+    private val _addressList = MutableStateFlow<List<Address>>(emptyList())
+    val addressList: StateFlow<List<Address>> get() = _addressList
 
     private val _allUsersWithOrders =
         MutableStateFlow<List<Pair<User, List<OrderHistoryItem>>>>(emptyList())
@@ -90,13 +98,16 @@ class MyCommerceViewModel @Inject constructor(
     private val _mobileNumberError = MutableStateFlow<String?>(null)
     val mobileNumberError: StateFlow<String?> get() = _mobileNumberError
 
+
     init {
         viewModelScope.launch {
             val currentUser = userRepository.getCurrentUser().first()
+            _userId.value = currentUser?.id
             if (currentUser != null) {
                 updateUserIdAndSignInState(currentUser.id, true)
                 fetchOrderHistory(currentUser.id)
                 fetchUserDetails(currentUser.id)
+                fetchUserAddresses()
             }
         }
     }
@@ -396,4 +407,40 @@ class MyCommerceViewModel @Inject constructor(
             }
         }
     }
+
+    fun addAddress(address: Address) {
+        viewModelScope.launch {
+            val userId = _userId.value
+            if (userId != null) {
+                val newAddress = address.copy(userId = userId)
+                val success = addressRepository.insertAddress(newAddress)
+                if (success) {
+                    fetchUserAddresses()
+                    _popupNotification.value = Event("Address added successfully")
+                } else {
+                    _popupNotification.value = Event("Failed to add address")
+                }
+            } else {
+                _popupNotification.value = Event("User not signed in")
+            }
+        }
+    }
+
+    fun deleteAddress(address: Address) {
+        viewModelScope.launch {
+            addressRepository.deleteAddress(address)
+            fetchUserAddresses()
+            _popupNotification.value = Event("Address deleted successfully")
+        }
+    }
+
+    private suspend fun fetchUserAddresses() {
+        val userId = _userId.value
+        if (userId != null) {
+            addressRepository.getAddressesByUserId(userId).collect { addresses ->
+                _addressList.value = addresses
+            }
+        }
+    }
+
 }
