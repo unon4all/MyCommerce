@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.OtherHouses
@@ -34,6 +35,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -84,7 +89,10 @@ fun LocationScreen(
 fun AddNewLocationLayout(
     modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
 ) {
-    val address by remember { mutableStateOf(Address()) }
+
+    var address by remember {
+        mutableStateOf(Address())
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         TopAppBar(
@@ -111,21 +119,23 @@ fun AddNewLocationLayout(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                OutlinedTextField(value = address.fullName,
-                    onValueChange = { address.fullName = it },
+                OutlinedTextField(
+                    value = address.fullName,
+                    onValueChange = { address = address.copy(fullName = it) },
                     label = { Text("Full Name") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(value = address.phoneNumber,
-                    onValueChange = { address.phoneNumber = it },
+                OutlinedTextField(
+                    value = address.phoneNumber,
+                    onValueChange = { address = address.copy(phoneNumber = it) },
                     label = { Text("Phone Number") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = address.alternateNumber,
-                    onValueChange = { address.alternateNumber = it },
+                    onValueChange = { address = address.copy(alternateNumber = it) },
                     label = { Text("Alternate Number") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -135,8 +145,9 @@ fun AddNewLocationLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(value = address.pinCode,
-                        onValueChange = { address.pinCode = it },
+                    OutlinedTextField(
+                        value = address.pinCode,
+                        onValueChange = { address = address.copy(pinCode = it) },
                         label = { Text("Pin Code") },
                         modifier = Modifier.weight(1f)
                     )
@@ -156,32 +167,36 @@ fun AddNewLocationLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(32.dp)
                 ) {
-                    OutlinedTextField(value = address.state,
-                        onValueChange = { address.state = it },
+                    OutlinedTextField(
+                        value = address.state,
+                        onValueChange = { address = address.copy(state = it) },
                         label = { Text("State") },
                         modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(value = address.city,
-                        onValueChange = { address.city = it },
+                        onValueChange = { address = address.copy(city = it) },
                         label = { Text("City") },
                         modifier = Modifier.weight(1f)
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(value = address.address,
-                    onValueChange = { address.address = it },
+                OutlinedTextField(
+                    value = address.address,
+                    onValueChange = { address = address.copy(address = it) },
                     label = { Text("Address") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(value = address.areaName,
-                    onValueChange = { address.areaName = it },
+                OutlinedTextField(
+                    value = address.areaName,
+                    onValueChange = { address = address.copy(areaName = it) },
                     label = { Text("Area Name") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(value = address.landmark,
-                    onValueChange = { address.landmark = it },
+                OutlinedTextField(
+                    value = address.landmark,
+                    onValueChange = { address = address.copy(landmark = it) },
                     label = { Text("Landmark") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -194,28 +209,22 @@ fun AddNewLocationLayout(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     InputChip(selected = address.typeOfAddress == 0,
-                        onClick = { address.typeOfAddress = 0 },
+                        onClick = { address = address.copy(typeOfAddress = 0) },
                         label = { Text("Home") },
                         leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Home, contentDescription = null
-                            )
+                            Icon(imageVector = Icons.Default.Home, contentDescription = null)
                         })
                     InputChip(selected = address.typeOfAddress == 1,
-                        onClick = { address.typeOfAddress = 1 },
+                        onClick = { address = address.copy(typeOfAddress = 1) },
                         label = { Text("Office") },
                         leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Work, contentDescription = null
-                            )
+                            Icon(imageVector = Icons.Default.Work, contentDescription = null)
                         })
                     InputChip(selected = address.typeOfAddress == 2,
-                        onClick = { address.typeOfAddress = 2 },
+                        onClick = { address = address.copy(typeOfAddress = 2) },
                         label = { Text("Other") },
                         leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.OtherHouses, contentDescription = null
-                            )
+                            Icon(imageVector = Icons.Default.OtherHouses, contentDescription = null)
                         })
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -232,8 +241,8 @@ fun AddNewLocationLayout(
     }
 }
 
+// Define the Address data class
 data class Address(
-
     var fullName: String = "",
     var phoneNumber: String = "",
     var alternateNumber: String = "",
@@ -245,3 +254,32 @@ data class Address(
     var landmark: String = "",
     var typeOfAddress: Int = 0 // 0 for Home, 1 for Office, 2 for Other
 )
+
+// Define a custom Saver for the Address class
+val AddressSaver: Saver<Address, Any> = listSaver(save = {
+    listOf(
+        it.fullName,
+        it.phoneNumber,
+        it.alternateNumber,
+        it.pinCode,
+        it.state,
+        it.city,
+        it.address,
+        it.areaName,
+        it.landmark,
+        it.typeOfAddress
+    )
+}, restore = {
+    Address(
+        fullName = it[0] as String,
+        phoneNumber = it[1] as String,
+        alternateNumber = it[2] as String,
+        pinCode = it[3] as String,
+        state = it[4] as String,
+        city = it[5] as String,
+        address = it[6] as String,
+        areaName = it[7] as String,
+        landmark = it[8] as String,
+        typeOfAddress = it[9] as Int
+    )
+})
