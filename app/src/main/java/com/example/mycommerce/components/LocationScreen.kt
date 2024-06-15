@@ -1,5 +1,6 @@
 package com.example.mycommerce.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,17 +17,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExpandCircleDown
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.OtherHouses
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,12 +40,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -65,6 +70,10 @@ fun LocationScreen(
                 }
             },
         )
+    }, floatingActionButton = {
+        FloatingActionButton(onClick = { navController.navigate(DestinationGraph.NewLocation.route) }) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = null)
+        }
     }) { innerPadding ->
         Box(
             modifier = Modifier
@@ -73,13 +82,7 @@ fun LocationScreen(
                 .imePadding(),
             contentAlignment = Alignment.Center
         ) {
-            Button(onClick = { navController.navigate(DestinationGraph.NewLocation.route) }) {
-                Text(
-                    text = "Add New Location", modifier = Modifier.padding(8.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            Text("Location Screen")
         }
     }
 }
@@ -89,7 +92,6 @@ fun LocationScreen(
 fun AddNewLocationLayout(
     modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
 ) {
-
     var address by remember {
         mutableStateOf(Address())
     }
@@ -173,7 +175,8 @@ fun AddNewLocationLayout(
                         label = { Text("State") },
                         modifier = Modifier.weight(1f)
                     )
-                    OutlinedTextField(value = address.city,
+                    OutlinedTextField(
+                        value = address.city,
                         onValueChange = { address = address.copy(city = it) },
                         label = { Text("City") },
                         modifier = Modifier.weight(1f)
@@ -208,24 +211,21 @@ fun AddNewLocationLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    InputChip(selected = address.typeOfAddress == 0,
-                        onClick = { address = address.copy(typeOfAddress = 0) },
-                        label = { Text("Home") },
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.Home, contentDescription = null)
-                        })
-                    InputChip(selected = address.typeOfAddress == 1,
-                        onClick = { address = address.copy(typeOfAddress = 1) },
-                        label = { Text("Office") },
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.Work, contentDescription = null)
-                        })
-                    InputChip(selected = address.typeOfAddress == 2,
-                        onClick = { address = address.copy(typeOfAddress = 2) },
-                        label = { Text("Other") },
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.OtherHouses, contentDescription = null)
-                        })
+                    InputChip(selected = address.typeOfAddress == 0, onClick = {
+                        address = address.copy(typeOfAddress = 0)
+                    }, label = { Text("Home") }, leadingIcon = {
+                        Icon(imageVector = Icons.Default.Home, contentDescription = null)
+                    })
+                    InputChip(selected = address.typeOfAddress == 1, onClick = {
+                        address = address.copy(typeOfAddress = 1)
+                    }, label = { Text("Office") }, leadingIcon = {
+                        Icon(imageVector = Icons.Default.Work, contentDescription = null)
+                    })
+                    InputChip(selected = address.typeOfAddress == 2, onClick = {
+                        address = address.copy(typeOfAddress = 2)
+                    }, label = { Text("Other") }, leadingIcon = {
+                        Icon(imageVector = Icons.Default.OtherHouses, contentDescription = null)
+                    })
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
@@ -255,31 +255,99 @@ data class Address(
     var typeOfAddress: Int = 0 // 0 for Home, 1 for Office, 2 for Other
 )
 
-// Define a custom Saver for the Address class
-val AddressSaver: Saver<Address, Any> = listSaver(save = {
-    listOf(
-        it.fullName,
-        it.phoneNumber,
-        it.alternateNumber,
-        it.pinCode,
-        it.state,
-        it.city,
-        it.address,
-        it.areaName,
-        it.landmark,
-        it.typeOfAddress
+@Preview
+@Composable
+fun PreviewAddressScreen() {
+
+    val addressList = listOf(
+        Address(
+            fullName = "John Doe",
+            phoneNumber = "1234567890",
+            alternateNumber = "9876543210",
+            pinCode = "123456",
+            state = "State 1",
+            city = "City 1",
+            address = "Address 1",
+            areaName = "Area 1",
+            landmark = "Landmark 1",
+            typeOfAddress = 0
+        ),
     )
-}, restore = {
-    Address(
-        fullName = it[0] as String,
-        phoneNumber = it[1] as String,
-        alternateNumber = it[2] as String,
-        pinCode = it[3] as String,
-        state = it[4] as String,
-        city = it[5] as String,
-        address = it[6] as String,
-        areaName = it[7] as String,
-        landmark = it[8] as String,
-        typeOfAddress = it[9] as Int
-    )
-})
+
+    AddressListContent(address = addressList)
+
+}
+
+@Composable
+fun AddressListContent(
+    address: List<Address>
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(text = "${address.size} Saved Addresses", fontSize = 16.sp, color = Color.Gray)
+        }
+        address.forEach {
+            AddressDetailsCard(address = it)
+        }
+    }
+}
+
+@Composable
+fun AddressDetailsCard(address: Address) {
+    var isDropDownExpanded by remember { mutableStateOf(false) }
+
+    Card(modifier = Modifier.fillMaxWidth(), shape = RectangleShape) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+        ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                IconButton(onClick = { isDropDownExpanded = !isDropDownExpanded }) {
+                    Icon(imageVector = Icons.Default.ExpandCircleDown, contentDescription = null)
+                    DropdownMenu(expanded = isDropDownExpanded,
+                        onDismissRequest = { isDropDownExpanded = false }) {
+                        DropdownMenuItem(onClick = { /*TODO*/ }, text = { Text(text = "Edit") })
+                        DropdownMenuItem(onClick = { /*TODO*/ }, text = { Text(text = "Save") })
+                        DropdownMenuItem(onClick = { /*TODO*/ },
+                            text = { Text(text = "Mark as Default") })
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = address.fullName, fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .background(color = Color.LightGray)
+                        .padding(4.dp)
+                ) {
+                    Text(text = getTypeOfAddressText(address.typeOfAddress))
+                }
+            }
+            Text(
+                text = "${address.address}, ${address.areaName}, ${address.city}, ${address.state}, ${address.pinCode}, ${address.landmark}",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 8.dp, end = 48.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = address.phoneNumber, fontSize = 14.sp)
+            Text(text = address.alternateNumber, fontSize = 14.sp)
+        }
+    }
+}
+
+// Function to map type of address to string
+fun getTypeOfAddressText(typeOfAddress: Int): String {
+    return when (typeOfAddress) {
+        0 -> "Home"
+        1 -> "Office"
+        2 -> "Other"
+        else -> ""
+    }
+}
