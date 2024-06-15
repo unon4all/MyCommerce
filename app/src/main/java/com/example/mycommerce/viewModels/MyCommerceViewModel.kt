@@ -1,5 +1,6 @@
 package com.example.mycommerce.viewModels
 
+
 import android.content.SharedPreferences
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -89,6 +90,15 @@ class MyCommerceViewModel @Inject constructor(
 
     private val _mobileNumberError = MutableStateFlow<String?>(null)
     val mobileNumberError: StateFlow<String?> get() = _mobileNumberError
+
+    private val _locationText = MutableStateFlow("No location obtained :(")
+    val locationText: StateFlow<String> = _locationText
+
+    private val _permissionResultText = MutableStateFlow("Permission Granted...")
+    val permissionResultText: StateFlow<String> = _permissionResultText
+
+    private val _showPermissionResultText = MutableStateFlow(false)
+    val showPermissionResultText: StateFlow<Boolean> = _showPermissionResultText
 
     init {
         viewModelScope.launch {
@@ -397,3 +407,4 @@ class MyCommerceViewModel @Inject constructor(
         }
     }
 }
+

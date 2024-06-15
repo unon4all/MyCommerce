@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
+    implementation(libs.play.services.location)
     kapt(libs.hilt.compiler)
     kapt(libs.androidx.hilt.compiler)
     implementation(libs.androidx.work.runtime.ktx)
@@ -123,6 +124,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
 
     implementation(libs.jbcrypt)
+
+    implementation(libs.accompanist.permissions)
+
+    implementation(libs.easypermissions.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

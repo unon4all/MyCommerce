@@ -4,10 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -37,9 +39,22 @@ class MainActivity : ComponentActivity() {
                     MyCommerceApp(
                         modifier = Modifier.padding(innerPadding)
                     )
+//                    DemoApp(
+//                        modifier = Modifier.padding(innerPadding)
+//                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun DemoApp(modifier: Modifier = Modifier) {
+
+    val viewModel = hiltViewModel<MyCommerceViewModel>()
+
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
     }
 }
 
@@ -78,11 +93,15 @@ fun MyCommerceApp(
         }
 
         composable(DestinationGraph.Location.route) {
-            LocationScreen(navController = navController, modifier = modifier, viewModel = viewModel)
+            LocationScreen(
+                navController = navController, modifier = modifier, viewModel = viewModel
+            )
         }
 
-        composable(DestinationGraph.NewLocation.route){
-            AddNewLocationLayout(navController = navController, modifier = modifier, viewModel = viewModel)
+        composable(DestinationGraph.NewLocation.route) {
+            AddNewLocationLayout(
+                navController = navController, modifier = modifier, viewModel = viewModel
+            )
         }
     }
 }
