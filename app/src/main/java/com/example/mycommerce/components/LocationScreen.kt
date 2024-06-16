@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.mycommerce.DestinationGraph
+import com.example.mycommerce.MainActivity
 import com.example.mycommerce.data.models.Address
 import com.example.mycommerce.data.models.UserAddressDetails
 import com.example.mycommerce.viewModels.MyCommerceViewModel
@@ -106,6 +108,7 @@ fun LocationScreen(
 fun AddNewLocationLayout(
     modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
 ) {
+    val context = LocalContext.current as MainActivity
 
     val userId by viewModel.userId.collectAsState()
 
@@ -200,9 +203,13 @@ fun AddNewLocationLayout(
                         )
                     )
                     Button(
-                        onClick = { /*TODO*/ },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(4.dp)
+                        onClick = {
+                            context.checkLocationPermission {
+                                context.fetchLocation { location ->
+                                    address = location
+                                }
+                            }
+                        }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(4.dp)
                     ) {
                         Icon(imageVector = Icons.Default.MyLocation, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))

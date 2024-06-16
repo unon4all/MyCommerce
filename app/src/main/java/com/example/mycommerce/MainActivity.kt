@@ -3,6 +3,7 @@ package com.example.mycommerce
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.net.Uri
@@ -12,12 +13,14 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
@@ -31,6 +34,8 @@ import com.example.mycommerce.components.LoginScreen
 import com.example.mycommerce.components.SignupScreen
 import com.example.mycommerce.components.UserProfile
 import com.example.mycommerce.components.common.NotificationMessage
+import com.example.mycommerce.data.models.Address
+import com.example.mycommerce.data.models.UserAddressDetails
 import com.example.mycommerce.ui.theme.MyCommerceTheme
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -44,6 +49,7 @@ import java.io.IOException
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import android.Manifest
 
 @SuppressLint("MissingPermission")
 @AndroidEntryPoint
@@ -54,6 +60,17 @@ class MainActivity : ComponentActivity() {
     // initialize the MyCommerceViewModel
     private val viewModel: MyCommerceViewModel by viewModels()
 
+    private val locationPermissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            fetchLocation { location ->
+                viewModel.saveAddress(location)
+            }
+        } else {
+            openAppSettings()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +85,109 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+
+    @SuppressLint("MissingPermission")
+    fun fetchLocation(onLocationFetched: (UserAddressDetails) -> Unit) {
+        lifecycleScope.launch {
+            try {
+                val location = getLastLocation()
+                if (location != null) {
+                    onLocationFetched(
+                        getReadableLocation(
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            context = this@MainActivity
+                        )
+                    )
+                } else {
+                    val currentLocation = getCurrentLocation()
+                    onLocationFetched(
+                        getReadableLocation(
+                            latitude = currentLocation.latitude,
+                            longitude = currentLocation.longitude,
+                            context = this@MainActivity
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.d("geolocation", e.message.toString())
+            }
+        }
+    }
+
+    fun checkLocationPermission(onPermissionGranted: () -> Unit) {
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            onPermissionGranted()
+        } else {
+            requestLocationPermission()
+        }
+    }
+
+    private fun requestLocationPermission() {
+        locationPermissionRequest.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+        }
+        startActivity(intent)
+    }
+
+    private suspend fun getLastLocation() = suspendCancellableCoroutine<Location?> { continuation ->
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
+            continuation.resume(location)
+        }.addOnFailureListener { exception ->
+            continuation.resumeWithException(exception)
+        }
+    }
+
+    private suspend fun getCurrentLocation() =
+        suspendCancellableCoroutine<Location> { continuation ->
+            val cancellationTokenSource = CancellationTokenSource()
+            fusedLocationProviderClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.token
+            ).addOnSuccessListener { location ->
+                continuation.resume(location)
+            }.addOnFailureListener { exception ->
+                continuation.resumeWithException(exception)
+            }
+            continuation.invokeOnCancellation {
+                cancellationTokenSource.cancel()
+            }
+        }
+
+    private fun getReadableLocation(
+        latitude: Double, longitude: Double, context: Context
+    ): UserAddressDetails {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        var resultAddress = UserAddressDetails(userId = viewModel.userId.value)
+
+        try {
+            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+            if (addresses?.isNotEmpty() == true) {
+                val address = addresses[0]
+                resultAddress = UserAddressDetails(
+                    userId = viewModel.userId.value,
+                    address = Address(
+                        pinCode = address.postalCode ?: "",
+                        city = address.locality ?: "",
+                        state = address.adminArea ?: "",
+                        addressLine = "${address.premises},${address.thoroughfare}" ?: "",
+                        areaName = address.subLocality ?: "",
+                    ),
+                )
+            }
+        } catch (e: IOException) {
+            Log.d("geolocation", e.message.toString())
+        }
+
+        return resultAddress
     }
 }
 
