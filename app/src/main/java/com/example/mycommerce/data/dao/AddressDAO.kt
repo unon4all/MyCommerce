@@ -18,7 +18,7 @@ interface AddressDAO {
     fun getUserAddresses(userId: String): Flow<List<UserAddressDetails>>
 
     @Query("SELECT * FROM user_address_details WHERE id = :id")
-    suspend fun getAddressById(id: Int): UserAddressDetails
+    fun getAddressById(id: Int): Flow<UserAddressDetails>
 
     @Update
     suspend fun updateAddress(userAddressDetails: UserAddressDetails)

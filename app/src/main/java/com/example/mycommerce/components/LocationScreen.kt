@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.OtherHouses
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,12 +68,6 @@ fun LocationScreen(
     modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
 ) {
     val userAddresses by viewModel.userAddresses.collectAsState()
-
-    val userId by viewModel.userId.collectAsState()
-
-    var address by remember {
-        mutableStateOf(UserAddressDetails(userId = userId))
-    }
 
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         TopAppBar(
@@ -117,23 +113,26 @@ fun AddNewLocationLayout(
         mutableStateOf(UserAddressDetails(userId = userId))
     }
 
-//    // Fetch selected address details if editing
-//    val selectedAddress by viewModel.selectedAddress.collectAsState()
-//
-//    // Check if we are editing an existing address
-//    address = if (selectedAddress != null) {
-//        // Populate fields with selected address data
-//        selectedAddress!!
-//    } else {
-//        // Clear fields when adding a new address
-//        UserAddressDetails(userId = "")
-//    }
+    // Fetch selected address details if editing
+    val selectedAddress by viewModel.selectedAddress.collectAsState()
+
+    // Check if we are editing an existing address
+    address = if (selectedAddress != null) {
+        // Populate fields with selected address data
+        selectedAddress!!
+    } else {
+        // Clear fields when adding a new address
+        UserAddressDetails(userId = userId)
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         TopAppBar(
-            title = { Text(text = "Add New Address") },
+            title = { Text(text = if (selectedAddress != null) "Edit Address" else "Add New Address") },
             navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
+                IconButton(onClick = {
+                    navController.popBackStack()
+                    viewModel.clearSelectedAddress()
+                }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
                     )
@@ -301,12 +300,20 @@ fun AddNewLocationLayout(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = { viewModel.saveAddress(address) },
-                    modifier = Modifier
+                    onClick = {
+                        if (selectedAddress != null) {
+                            viewModel.updateAddress(address)
+                            navController.popBackStack()
+                            viewModel.clearSelectedAddress()
+                        } else {
+                            viewModel.saveAddress(address)
+                            navController.popBackStack()
+                        }
+                    }, modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
-                    Text(text = "Save Address")
+                    Text(text = if (selectedAddress != null) "Update Address" else "Save Address")
                 }
             }
         }
@@ -345,10 +352,14 @@ fun AddressDetailsCard(
 ) {
     var isDropDownExpanded by remember { mutableStateOf(false) }
 
+    val cardBackgroundColor = if (address.isDefault) Color.Green else Color.LightGray
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp), shape = RoundedCornerShape(4.dp)
+            .padding(8.dp),
+        shape = RoundedCornerShape(4.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor)
     ) {
         Column(
             Modifier.fillMaxWidth()
@@ -359,18 +370,28 @@ fun AddressDetailsCard(
                     DropdownMenu(expanded = isDropDownExpanded,
                         onDismissRequest = { isDropDownExpanded = false }) {
                         DropdownMenuItem(onClick = {
-                            viewModel.getUserAddressDetails(address.address.addressId)
+                            viewModel.getUserAddressDetails(address.id)
                             navController.navigate(DestinationGraph.NewLocation.route)
+                            isDropDownExpanded = false
                         }, text = { Text(text = "Edit") })
-                        DropdownMenuItem(onClick = { viewModel.deleteAddress(address) },
-                            text = { Text(text = "Delete") })
                         DropdownMenuItem(onClick = {
-                            viewModel.markAsDefault(
-                                addressId = address.id, userId = address.userId
-                            )
+                            viewModel.deleteAddress(address)
+                            isDropDownExpanded = false
+                        }, text = { Text(text = "Delete") })
+                        DropdownMenuItem(onClick = {
+                            viewModel.markAsDefault(addressId = address.id, userId = address.userId)
+                            isDropDownExpanded = false
                         }, text = { Text(text = "Mark as Default") })
                     }
                 }
+            }
+            if (address.isDefault) {
+                Text(
+                    text = "Default address",
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(8.dp)
+                )
             }
             Row(
                 modifier = Modifier

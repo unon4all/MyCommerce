@@ -424,7 +424,7 @@ class MyCommerceViewModel @Inject constructor(
         }
     }
 
-     fun fetchUserAddresses(userId: String) {
+    fun fetchUserAddresses(userId: String) {
         viewModelScope.launch {
             try {
                 val addresses = addressRepository.getUserAddresses(userId).first()
@@ -464,7 +464,7 @@ class MyCommerceViewModel @Inject constructor(
     fun getUserAddressDetails(addressId: Int) {
         viewModelScope.launch {
             try {
-                val address = addressRepository.getAddressById(addressId)
+                val address = addressRepository.getAddressById(addressId).first()
                 _selectedAddress.value = address
             } catch (e: Exception) {
                 handleException(e, "Failed to fetch address details")
@@ -484,6 +484,18 @@ class MyCommerceViewModel @Inject constructor(
                 fetchUserAddresses(userId) // Refresh the address list after update
             } catch (e: Exception) {
                 handleException(e, "Failed to update default address")
+            }
+        }
+    }
+
+    fun updateAddress(addressDetails: UserAddressDetails) {
+        viewModelScope.launch {
+            try {
+                addressRepository.updateAddress(addressDetails)
+                fetchUserAddresses(addressDetails.userId) // Update the list after update
+                _popupNotification.value = Event("Address updated successfully")
+            } catch (e: Exception) {
+                handleException(e, "Failed to update address")
             }
         }
     }

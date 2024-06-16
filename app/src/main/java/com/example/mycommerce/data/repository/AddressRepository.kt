@@ -17,7 +17,7 @@ class AddressRepository @Inject constructor(private val addressDAO: AddressDAO) 
         return addressDAO.getUserAddresses(userId)
     }
 
-    suspend fun getAddressById(id: Int): UserAddressDetails {
+    fun getAddressById(id: Int): Flow<UserAddressDetails> {
         return addressDAO.getAddressById(id)
     }
 
