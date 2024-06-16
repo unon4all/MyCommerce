@@ -58,7 +58,10 @@ fun ShoppingScreen(
             TopAppBar(title = {
                 Text(text = "MyCommerce")
             }, actions = {
-                IconButton(onClick = { navController.navigate("location") }) {
+                IconButton(onClick = {
+                    viewModel.fetchUserAddresses(viewModel.userId.value)
+                    navController.navigate("location")
+                }) {
                     Icon(imageVector = Icons.Default.LocationOn, contentDescription = "")
                 }
                 IconButton(onClick = { navController.navigate("profile") }) {

@@ -32,11 +32,10 @@ object DatabaseModule {
     fun provideECommerceItemDao(db: AppDatabase) = db.eCommerceItemDao()
 
     @Provides
-    fun provideAddressDao(db: AppDatabase) = db.addressDao()
+    fun provideProductDao(db: AppDatabase) = db.userAddressDetailsDao()
 
     @Provides
     fun provideSharedPreferences(@ApplicationContext appContext: Context): SharedPreferences {
         return appContext.getSharedPreferences("my_app_pref", Context.MODE_PRIVATE)
     }
 }
-

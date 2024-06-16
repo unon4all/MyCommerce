@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +47,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.mycommerce.DestinationGraph
+import com.example.mycommerce.data.models.Address
+import com.example.mycommerce.data.models.UserAddressDetails
 import com.example.mycommerce.viewModels.MyCommerceViewModel
 
 
@@ -58,6 +65,13 @@ import com.example.mycommerce.viewModels.MyCommerceViewModel
 fun LocationScreen(
     modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
 ) {
+    val userAddresses by viewModel.userAddresses.collectAsState()
+
+    val userId by viewModel.userId.collectAsState()
+
+    var address by remember {
+        mutableStateOf(UserAddressDetails(userId = userId))
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         TopAppBar(
@@ -71,7 +85,9 @@ fun LocationScreen(
             },
         )
     }, floatingActionButton = {
-        FloatingActionButton(onClick = { navController.navigate(DestinationGraph.NewLocation.route) }) {
+        FloatingActionButton(onClick = {
+            navController.navigate(DestinationGraph.NewLocation.route)
+        }) {
             Icon(imageVector = Icons.Default.Add, contentDescription = null)
         }
     }) { innerPadding ->
@@ -82,7 +98,9 @@ fun LocationScreen(
                 .imePadding(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Location Screen")
+            AddressListContent(
+                address = userAddresses, viewModel = viewModel, navController = navController
+            )
         }
     }
 }
@@ -92,13 +110,28 @@ fun LocationScreen(
 fun AddNewLocationLayout(
     modifier: Modifier = Modifier, navController: NavHostController, viewModel: MyCommerceViewModel
 ) {
+
+    val userId by viewModel.userId.collectAsState()
+
     var address by remember {
-        mutableStateOf(Address())
+        mutableStateOf(UserAddressDetails(userId = userId))
     }
+
+//    // Fetch selected address details if editing
+//    val selectedAddress by viewModel.selectedAddress.collectAsState()
+//
+//    // Check if we are editing an existing address
+//    address = if (selectedAddress != null) {
+//        // Populate fields with selected address data
+//        selectedAddress!!
+//    } else {
+//        // Clear fields when adding a new address
+//        UserAddressDetails(userId = "")
+//    }
 
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         TopAppBar(
-            title = { Text(text = "My Addresses") },
+            title = { Text(text = "Add New Address") },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
@@ -125,21 +158,30 @@ fun AddNewLocationLayout(
                     value = address.fullName,
                     onValueChange = { address = address.copy(fullName = it) },
                     label = { Text("Full Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = address.phoneNumber,
                     onValueChange = { address = address.copy(phoneNumber = it) },
                     label = { Text("Phone Number") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = address.alternateNumber,
                     onValueChange = { address = address.copy(alternateNumber = it) },
                     label = { Text("Alternate Number") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
@@ -148,10 +190,15 @@ fun AddNewLocationLayout(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedTextField(
-                        value = address.pinCode,
-                        onValueChange = { address = address.copy(pinCode = it) },
+                        value = address.address.pinCode,
+                        onValueChange = {
+                            address = address.copy(address = address.address.copy(pinCode = it))
+                        },
                         label = { Text("Pin Code") },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done
+                        )
                     )
                     Button(
                         onClick = { /*TODO*/ },
@@ -170,38 +217,63 @@ fun AddNewLocationLayout(
                     horizontalArrangement = Arrangement.spacedBy(32.dp)
                 ) {
                     OutlinedTextField(
-                        value = address.state,
-                        onValueChange = { address = address.copy(state = it) },
+                        value = address.address.state,
+                        onValueChange = {
+                            address = address.copy(address = address.address.copy(state = it))
+                        },
                         label = { Text("State") },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        )
                     )
                     OutlinedTextField(
-                        value = address.city,
-                        onValueChange = { address = address.copy(city = it) },
+                        value = address.address.city,
+                        onValueChange = {
+                            address = address.copy(address = address.address.copy(city = it))
+                        },
                         label = { Text("City") },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        )
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
-                    value = address.address,
-                    onValueChange = { address = address.copy(address = it) },
+                    value = address.address.addressLine,
+                    onValueChange = {
+                        address = address.copy(address = address.address.copy(addressLine = it))
+                    },
                     label = { Text("Address") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
-                    value = address.areaName,
-                    onValueChange = { address = address.copy(areaName = it) },
+                    value = address.address.areaName,
+                    onValueChange = {
+                        address = address.copy(address = address.address.copy(areaName = it))
+                    },
                     label = { Text("Area Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
-                    value = address.landmark,
-                    onValueChange = { address = address.copy(landmark = it) },
+                    value = address.address.landmark,
+                    onValueChange = {
+                        address = address.copy(address = address.address.copy(landmark = it))
+                    },
                     label = { Text("Landmark") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Type of Address")
@@ -211,25 +283,25 @@ fun AddNewLocationLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    InputChip(selected = address.typeOfAddress == 0, onClick = {
-                        address = address.copy(typeOfAddress = 0)
+                    InputChip(selected = address.address.typeOfAddress == 0, onClick = {
+                        address = address.copy(address = address.address.copy(typeOfAddress = 0))
                     }, label = { Text("Home") }, leadingIcon = {
                         Icon(imageVector = Icons.Default.Home, contentDescription = null)
                     })
-                    InputChip(selected = address.typeOfAddress == 1, onClick = {
-                        address = address.copy(typeOfAddress = 1)
+                    InputChip(selected = address.address.typeOfAddress == 1, onClick = {
+                        address = address.copy(address = address.address.copy(typeOfAddress = 1))
                     }, label = { Text("Office") }, leadingIcon = {
                         Icon(imageVector = Icons.Default.Work, contentDescription = null)
                     })
-                    InputChip(selected = address.typeOfAddress == 2, onClick = {
-                        address = address.copy(typeOfAddress = 2)
+                    InputChip(selected = address.address.typeOfAddress == 2, onClick = {
+                        address = address.copy(address = address.address.copy(typeOfAddress = 2))
                     }, label = { Text("Other") }, leadingIcon = {
                         Icon(imageVector = Icons.Default.OtherHouses, contentDescription = null)
                     })
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = { /* Handle save logic */ },
+                    onClick = { viewModel.saveAddress(address) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
@@ -241,48 +313,16 @@ fun AddNewLocationLayout(
     }
 }
 
-// Define the Address data class
-data class Address(
-    var fullName: String = "",
-    var phoneNumber: String = "",
-    var alternateNumber: String = "",
-    var pinCode: String = "",
-    var state: String = "",
-    var city: String = "",
-    var address: String = "",
-    var areaName: String = "",
-    var landmark: String = "",
-    var typeOfAddress: Int = 0 // 0 for Home, 1 for Office, 2 for Other
-)
-
-@Preview
-@Composable
-fun PreviewAddressScreen() {
-
-    val addressList = listOf(
-        Address(
-            fullName = "John Doe",
-            phoneNumber = "1234567890",
-            alternateNumber = "9876543210",
-            pinCode = "123456",
-            state = "State 1",
-            city = "City 1",
-            address = "Address 1",
-            areaName = "Area 1",
-            landmark = "Landmark 1",
-            typeOfAddress = 0
-        ),
-    )
-
-    AddressListContent(address = addressList)
-
-}
 
 @Composable
 fun AddressListContent(
-    address: List<Address>
+    address: List<UserAddressDetails>, viewModel: MyCommerceViewModel, navController: NavController
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -290,35 +330,53 @@ fun AddressListContent(
         ) {
             Text(text = "${address.size} Saved Addresses", fontSize = 16.sp, color = Color.Gray)
         }
-        address.forEach {
-            AddressDetailsCard(address = it)
+        address.forEach { addressDetails ->
+            AddressDetailsCard(
+                address = addressDetails, viewModel = viewModel, navController = navController
+            )
         }
     }
 }
 
+
 @Composable
-fun AddressDetailsCard(address: Address) {
+fun AddressDetailsCard(
+    address: UserAddressDetails, viewModel: MyCommerceViewModel, navController: NavController
+) {
     var isDropDownExpanded by remember { mutableStateOf(false) }
 
-    Card(modifier = Modifier.fillMaxWidth(), shape = RectangleShape) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp), shape = RoundedCornerShape(4.dp)
+    ) {
         Column(
-            Modifier
-                .fillMaxWidth()
+            Modifier.fillMaxWidth()
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 IconButton(onClick = { isDropDownExpanded = !isDropDownExpanded }) {
                     Icon(imageVector = Icons.Default.ExpandCircleDown, contentDescription = null)
                     DropdownMenu(expanded = isDropDownExpanded,
                         onDismissRequest = { isDropDownExpanded = false }) {
-                        DropdownMenuItem(onClick = { /*TODO*/ }, text = { Text(text = "Edit") })
-                        DropdownMenuItem(onClick = { /*TODO*/ }, text = { Text(text = "Save") })
-                        DropdownMenuItem(onClick = { /*TODO*/ },
-                            text = { Text(text = "Mark as Default") })
+                        DropdownMenuItem(onClick = {
+                            viewModel.getUserAddressDetails(address.address.addressId)
+                            navController.navigate(DestinationGraph.NewLocation.route)
+                        }, text = { Text(text = "Edit") })
+                        DropdownMenuItem(onClick = { viewModel.deleteAddress(address) },
+                            text = { Text(text = "Delete") })
+                        DropdownMenuItem(onClick = {
+                            viewModel.markAsDefault(
+                                addressId = address.id, userId = address.userId
+                            )
+                        }, text = { Text(text = "Mark as Default") })
                     }
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = address.fullName, fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -327,20 +385,29 @@ fun AddressDetailsCard(address: Address) {
                         .background(color = Color.LightGray)
                         .padding(4.dp)
                 ) {
-                    Text(text = getTypeOfAddressText(address.typeOfAddress))
+                    Text(text = getTypeOfAddressText(address.address.typeOfAddress))
                 }
             }
             Text(
-                text = "${address.address}, ${address.areaName}, ${address.city}, ${address.state}, ${address.pinCode}, ${address.landmark}",
-                fontSize = 14.sp,
-                modifier = Modifier.padding(top = 8.dp, end = 48.dp)
+                text = "${address.address.addressLine}, ${address.address.areaName}, ${address.address.city}, ${address.address.state}, ${address.address.pinCode}, ${address.address.landmark}",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(top = 8.dp, end = 48.dp, start = 8.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = address.phoneNumber, fontSize = 14.sp)
-            Text(text = address.alternateNumber, fontSize = 14.sp)
+            Text(
+                text = address.phoneNumber,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+            Text(
+                text = address.alternateNumber,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+            )
         }
     }
 }
+
 
 // Function to map type of address to string
 fun getTypeOfAddressText(typeOfAddress: Int): String {

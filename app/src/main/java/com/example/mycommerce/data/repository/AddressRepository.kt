@@ -1,33 +1,35 @@
 package com.example.mycommerce.data.repository
 
-import android.content.SharedPreferences
 import com.example.mycommerce.data.dao.AddressDAO
-import com.example.mycommerce.data.models.Address
+import com.example.mycommerce.data.models.UserAddressDetails
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 
 @ViewModelScoped
-class AddressRepository @Inject constructor(
-    private val addressDao: AddressDAO,
-    private val sharedPreferences: SharedPreferences // Example dependency for storing user session
-) {
-    fun getAddressesByUserId(userId: String): Flow<List<Address>> {
-        return addressDao.getAddressesByUserId(userId)
+class AddressRepository @Inject constructor(private val addressDAO: AddressDAO) {
+    suspend fun insertAddress(userAddressDetails: UserAddressDetails) {
+        addressDAO.insertAddress(userAddressDetails)
     }
 
-    suspend fun insertAddress(address: Address): Boolean {
-        // Insert into local database
-        val result = addressDao.insertAddress(address)
-        return result != -1L // Return true if insertion was successful
+    fun getUserAddresses(userId: String): Flow<List<UserAddressDetails>> {
+        return addressDAO.getUserAddresses(userId)
     }
 
-    suspend fun deleteAddress(address: Address) {
-        addressDao.deleteAddress(address)
+    suspend fun getAddressById(id: Int): UserAddressDetails {
+        return addressDAO.getAddressById(id)
     }
 
-    fun getCurrentUserId(): Int {
-        // Get the current user ID from shared preferences
-        return sharedPreferences.getInt("userId", -1)
+    suspend fun updateAddress(userAddressDetails: UserAddressDetails) {
+        addressDAO.updateAddress(userAddressDetails)
+    }
+
+    suspend fun deleteAddress(userAddressDetails: UserAddressDetails) {
+        addressDAO.deleteAddress(userAddressDetails)
+    }
+
+    suspend fun updateDefaultAddress(id: Int, userId: String) {
+        addressDAO.updateDefaultAddress(id, userId)
     }
 }

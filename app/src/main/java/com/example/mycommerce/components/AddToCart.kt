@@ -42,6 +42,7 @@ fun AddToCartScreen(
 
     val cartItems by viewModel.cartItems.collectAsState()
     var isCheckoutClicked by remember { mutableStateOf(false) }
+    val addressList by viewModel.userAddresses.collectAsState()
 
     Column(
         modifier = Modifier
@@ -61,8 +62,12 @@ fun AddToCartScreen(
     if (cartItems.isNotEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             Button(onClick = {
-                viewModel.placeOrder()
-                isCheckoutClicked = true
+                if (addressList.isEmpty()) {
+                    navController.navigate(DestinationGraph.Location.route)
+                } else {
+                    viewModel.placeOrder()
+                    isCheckoutClicked = true
+                }
             }) {
                 Text(text = "Checkout")
             }

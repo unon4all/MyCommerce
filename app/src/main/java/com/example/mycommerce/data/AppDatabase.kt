@@ -8,20 +8,19 @@ import com.example.mycommerce.data.dao.ECommerceItemDAO
 import com.example.mycommerce.data.dao.OrderHistoryDAO
 import com.example.mycommerce.data.dao.UserDAO
 import com.example.mycommerce.data.extra.Converters
-import com.example.mycommerce.data.models.Address
 import com.example.mycommerce.data.models.ECommerceItem
 import com.example.mycommerce.data.models.OrderHistoryItem
 import com.example.mycommerce.data.models.User
+import com.example.mycommerce.data.models.UserAddressDetails
 
 @Database(
-    entities = [User::class, OrderHistoryItem::class, ECommerceItem::class, Address::class],
-    version = 6
+    entities = [User::class, OrderHistoryItem::class, ECommerceItem::class, UserAddressDetails::class],
+    version = 11
 )
 @TypeConverters(Converters::class) // Add if you have converters
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDAO
     abstract fun orderHistoryDao(): OrderHistoryDAO
     abstract fun eCommerceItemDao(): ECommerceItemDAO
-    abstract fun addressDao(): AddressDAO
+    abstract fun userAddressDetailsDao(): AddressDAO
 }
-

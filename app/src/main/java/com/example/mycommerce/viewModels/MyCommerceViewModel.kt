@@ -1,16 +1,15 @@
 package com.example.mycommerce.viewModels
 
-
 import android.content.SharedPreferences
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mycommerce.data.extra.Event
-import com.example.mycommerce.data.models.Address
 import com.example.mycommerce.data.models.ECommerceItem
 import com.example.mycommerce.data.models.OrderHistoryItem
 import com.example.mycommerce.data.models.OrderStatus
 import com.example.mycommerce.data.models.User
+import com.example.mycommerce.data.models.UserAddressDetails
 import com.example.mycommerce.data.repository.AddressRepository
 import com.example.mycommerce.data.repository.OrderHistoryRepository
 import com.example.mycommerce.data.repository.UserRepository
@@ -29,8 +28,8 @@ import kotlin.math.roundToInt
 class MyCommerceViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val orderHistoryRepository: OrderHistoryRepository,
+    private val addressRepository: AddressRepository,
     private val sharedPreferences: SharedPreferences,
-    private val addressRepository: AddressRepository
 ) : ViewModel() {
 
 
@@ -64,15 +63,12 @@ class MyCommerceViewModel @Inject constructor(
     private val _orderHistory = MutableStateFlow<List<OrderHistoryItem>>(emptyList())
     val orderHistory: StateFlow<List<OrderHistoryItem>> get() = _orderHistory
 
-    private val _addressList = MutableStateFlow<List<Address>>(emptyList())
-    val addressList: StateFlow<List<Address>> get() = _addressList
-
     private val _allUsersWithOrders =
         MutableStateFlow<List<Pair<User, List<OrderHistoryItem>>>>(emptyList())
     val allUsersWithOrders: StateFlow<List<Pair<User, List<OrderHistoryItem>>>> get() = _allUsersWithOrders
 
-    private val _userId = MutableStateFlow<String?>(null)
-    val userId: StateFlow<String?> get() = _userId
+    private val _userId = MutableStateFlow<String>("")
+    val userId: StateFlow<String> get() = _userId
 
     private val _firstName = MutableStateFlow(TextFieldValue(""))
     val firstName: StateFlow<TextFieldValue> get() = _firstName
@@ -98,22 +94,41 @@ class MyCommerceViewModel @Inject constructor(
     private val _mobileNumberError = MutableStateFlow<String?>(null)
     val mobileNumberError: StateFlow<String?> get() = _mobileNumberError
 
+    private val _userAddresses = MutableStateFlow<List<UserAddressDetails>>(emptyList())
+    val userAddresses: StateFlow<List<UserAddressDetails>> get() = _userAddresses
+
+    private val _selectedAddress = MutableStateFlow<UserAddressDetails?>(null)
+    val selectedAddress: StateFlow<UserAddressDetails?> get() = _selectedAddress
+
 
     init {
         viewModelScope.launch {
             val currentUser = userRepository.getCurrentUser().first()
-            _userId.value = currentUser?.id
             if (currentUser != null) {
+                _userId.value = currentUser.id
                 updateUserIdAndSignInState(currentUser.id, true)
                 fetchOrderHistory(currentUser.id)
                 fetchUserDetails(currentUser.id)
-                fetchUserAddresses()
+                fetchUserAddresses(currentUser.id)
             }
         }
     }
 
+
+    private fun clearUserData() {
+        _orderHistory.value = emptyList()
+        _userAddresses.value = emptyList()
+        _firstName.value = TextFieldValue("")
+        _lastName.value = TextFieldValue("")
+        _mobileNumber.value = TextFieldValue("")
+        _email.value = TextFieldValue("")
+        _imageUrl.value = null
+    }
+
     private fun updateUserIdAndSignInState(userId: String?, isSignedIn: Boolean) {
-        _userId.value = userId
+        if (userId != null) {
+            _userId.value = userId
+        }
         _isUserSignedIn.value = isSignedIn
     }
 
@@ -182,6 +197,7 @@ class MyCommerceViewModel @Inject constructor(
                     _popupNotification.value = Event("Login successful")
                     updateUserIdAndSignInState(user.id, true)
                     userRepository.setCurrentUser(user.id)
+                    fetchUserAddresses(user.id)
                     fetchOrderHistory(user.id)
                     fetchUserDetails(user.id)
                 } else {
@@ -408,39 +424,67 @@ class MyCommerceViewModel @Inject constructor(
         }
     }
 
-    fun addAddress(address: Address) {
+     fun fetchUserAddresses(userId: String) {
         viewModelScope.launch {
-            val userId = _userId.value
-            if (userId != null) {
-                val newAddress = address.copy(userId = userId)
-                val success = addressRepository.insertAddress(newAddress)
-                if (success) {
-                    fetchUserAddresses()
-                    _popupNotification.value = Event("Address added successfully")
-                } else {
-                    _popupNotification.value = Event("Failed to add address")
-                }
-            } else {
-                _popupNotification.value = Event("User not signed in")
+            try {
+                val addresses = addressRepository.getUserAddresses(userId).first()
+                _userAddresses.value = addresses
+            } catch (e: Exception) {
+                handleException(e, "Failed to fetch user addresses")
             }
         }
     }
 
-    fun deleteAddress(address: Address) {
+    // Ensure to call fetchUserAddresses whenever an address is added or deleted
+    fun saveAddress(addressDetails: UserAddressDetails) {
         viewModelScope.launch {
-            addressRepository.deleteAddress(address)
-            fetchUserAddresses()
-            _popupNotification.value = Event("Address deleted successfully")
-        }
-    }
-
-    private suspend fun fetchUserAddresses() {
-        val userId = _userId.value
-        if (userId != null) {
-            addressRepository.getAddressesByUserId(userId).collect { addresses ->
-                _addressList.value = addresses
+            try {
+                addressRepository.insertAddress(addressDetails)
+                fetchUserAddresses(addressDetails.userId) // Update the list after save/update
+                _popupNotification.value = Event("Address saved successfully")
+            } catch (e: Exception) {
+                handleException(e, "Failed to save address")
             }
         }
     }
 
+    fun deleteAddress(addressDetails: UserAddressDetails) {
+        viewModelScope.launch {
+            try {
+                addressRepository.deleteAddress(addressDetails)
+                fetchUserAddresses(addressDetails.userId) // Update the list after deletion
+                _popupNotification.value = Event("Address deleted successfully")
+            } catch (e: Exception) {
+                handleException(e, "Failed to delete address")
+            }
+        }
+    }
+
+    // Method to fetch details of a specific address
+    fun getUserAddressDetails(addressId: Int) {
+        viewModelScope.launch {
+            try {
+                val address = addressRepository.getAddressById(addressId)
+                _selectedAddress.value = address
+            } catch (e: Exception) {
+                handleException(e, "Failed to fetch address details")
+            }
+        }
+    }
+
+    // Method to clear selected address
+    fun clearSelectedAddress() {
+        _selectedAddress.value = null
+    }
+
+    fun markAsDefault(addressId: Int, userId: String) {
+        viewModelScope.launch {
+            try {
+                addressRepository.updateDefaultAddress(addressId, userId)
+                fetchUserAddresses(userId) // Refresh the address list after update
+            } catch (e: Exception) {
+                handleException(e, "Failed to update default address")
+            }
+        }
+    }
 }
