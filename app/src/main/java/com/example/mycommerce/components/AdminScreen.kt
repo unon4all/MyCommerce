@@ -179,6 +179,23 @@ fun MultipleOrderHistory(
                 )
             }
             CommonDivider()
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Order Placed for: ${orderItem.userAddressDetails?.fullName}")
+                Text(text = "Delivery Address: ${orderItem.userAddressDetails?.address?.addressLine}, ${orderItem.userAddressDetails?.address?.city}, ${orderItem.userAddressDetails?.address?.state}, ${orderItem.userAddressDetails?.address?.pinCode}")
+            }
+
+            CommonDivider()
+
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Phone no: ${orderItem.userAddressDetails?.phoneNumber}")
+                Text(text = "Alternate Phone no: ${orderItem.userAddressDetails?.alternateNumber}")
+            }
+
+            CommonDivider()
         }
     }
 }
