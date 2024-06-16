@@ -32,4 +32,8 @@ class AddressRepository @Inject constructor(private val addressDAO: AddressDAO) 
     suspend fun updateDefaultAddress(id: Int, userId: String) {
         addressDAO.updateDefaultAddress(id, userId)
     }
+
+    fun getDefaultAddress(userId: String): Flow<UserAddressDetails?> {
+        return addressDAO.getDefaultAddress(userId)
+    }
 }

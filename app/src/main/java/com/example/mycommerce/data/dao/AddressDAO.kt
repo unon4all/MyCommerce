@@ -28,5 +28,8 @@ interface AddressDAO {
 
     @Query("UPDATE user_address_details SET isDefault = CASE WHEN id = :id THEN 1 ELSE 0 END WHERE userId = :userId")
     suspend fun updateDefaultAddress(id: Int, userId: String)
+
+    @Query("SELECT * FROM user_address_details WHERE userId = :userId AND isDefault = 1 LIMIT 1")
+    fun getDefaultAddress(userId: String): Flow<UserAddressDetails?>
 }
 

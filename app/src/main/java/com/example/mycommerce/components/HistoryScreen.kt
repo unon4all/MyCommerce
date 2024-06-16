@@ -57,7 +57,7 @@ fun HistoryScreen(
 fun OrderHistoryContent(orderHistory: List<OrderHistoryItem>, viewModel: MyCommerceViewModel) {
     LazyColumn {
         itemsIndexed(items = orderHistory) { index, itemList ->
-            OrderHistoryItemContent(itemList = itemList, viewModel = viewModel, index = index)
+            OrderHistoryItemContent(itemList = itemList, viewModel = viewModel, index = index + 1)
         }
     }
 }
@@ -112,6 +112,20 @@ fun OrderHistoryItemContent(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(text = "Order Placed for ${itemList.userAddressDetails?.fullName}")
+                Text(text = "Address: ${itemList.userAddressDetails?.address}")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(text = "Phone no. ${itemList.userAddressDetails?.phoneNumber}")
+                Text(text = "Phone no. ${itemList.userAddressDetails?.alternateNumber}")
             }
         }
     }

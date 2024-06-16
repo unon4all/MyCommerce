@@ -43,6 +43,7 @@ fun AddToCartScreen(
     val cartItems by viewModel.cartItems.collectAsState()
     var isCheckoutClicked by remember { mutableStateOf(false) }
     val addressList by viewModel.userAddresses.collectAsState()
+    val userId by viewModel.userId.collectAsState()
 
     Column(
         modifier = Modifier

@@ -100,6 +100,9 @@ class MyCommerceViewModel @Inject constructor(
     private val _selectedAddress = MutableStateFlow<UserAddressDetails?>(null)
     val selectedAddress: StateFlow<UserAddressDetails?> get() = _selectedAddress
 
+    private val _defaultAddress = MutableStateFlow<UserAddressDetails?>(null)
+    val defaultAddress: StateFlow<UserAddressDetails?> get() = _defaultAddress
+
 
     init {
         viewModelScope.launch {
@@ -110,6 +113,7 @@ class MyCommerceViewModel @Inject constructor(
                 fetchOrderHistory(currentUser.id)
                 fetchUserDetails(currentUser.id)
                 fetchUserAddresses(currentUser.id)
+                getMarkDefaultAddress(currentUser.id) // Fetch and set default address
             }
         }
     }
@@ -134,13 +138,19 @@ class MyCommerceViewModel @Inject constructor(
 
     fun placeOrder() {
         if (_isUserSignedIn.value) {
-            val userId = _userId.value ?: return
+            val userId = _userId.value
             val items = _cartItems.value
             val totalPrice = calculateTotalPrice()
             val orderStatus = OrderStatus.PLACED
+            val defaultAddress = _defaultAddress.value
+//            val defaultAddress = getMarkDefaultAddress(userId)
 
             val orderHistoryItem = OrderHistoryItem(
-                userId = userId, items = items, status = orderStatus, totalPrice = totalPrice
+                userId = userId,
+                items = items,
+                status = orderStatus,
+                totalPrice = totalPrice,
+                userAddressDetails = defaultAddress
             )
 
             viewModelScope.launch {
@@ -496,6 +506,17 @@ class MyCommerceViewModel @Inject constructor(
                 _popupNotification.value = Event("Address updated successfully")
             } catch (e: Exception) {
                 handleException(e, "Failed to update address")
+            }
+        }
+    }
+
+     fun getMarkDefaultAddress(userId: String) {
+        viewModelScope.launch {
+            try {
+                val address = addressRepository.getDefaultAddress(userId).first()
+                _defaultAddress.value = address
+            } catch (e: Exception) {
+                handleException(e, "Failed to fetch address details")
             }
         }
     }

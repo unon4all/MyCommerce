@@ -57,14 +57,17 @@ fun UserScreens(
     Scaffold(bottomBar = {
         NavigationBar(modifier = modifier) {
             items.forEachIndexed { index, item ->
-                NavigationBarItem(selected = selectedIndexDemo == index,
-                    onClick = { selectedIndexDemo = index },
-                    icon = {
-                        Icon(
-                            imageVector = if (selectedIndexDemo == index) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = null
-                        )
-                    })
+                NavigationBarItem(selected = selectedIndexDemo == index, onClick = {
+                    selectedIndexDemo = index
+                    if (selectedIndexDemo == 1) {
+                        viewModel.getMarkDefaultAddress(viewModel.userId.value)
+                    }
+                }, icon = {
+                    Icon(
+                        imageVector = if (selectedIndexDemo == index) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = null
+                    )
+                })
             }
         }
     }) { innerPadding ->

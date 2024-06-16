@@ -15,7 +15,7 @@ import com.example.mycommerce.data.models.UserAddressDetails
 
 @Database(
     entities = [User::class, OrderHistoryItem::class, ECommerceItem::class, UserAddressDetails::class],
-    version = 12
+    version = 16
 )
 @TypeConverters(Converters::class) // Add if you have converters
 abstract class AppDatabase : RoomDatabase() {
