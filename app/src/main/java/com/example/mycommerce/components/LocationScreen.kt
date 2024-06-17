@@ -75,7 +75,10 @@ fun LocationScreen(
         TopAppBar(
             title = { Text(text = "My Addresses") },
             navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
+                IconButton(onClick = {
+                    viewModel.getMarkDefaultAddress(viewModel.userId.value)
+                    navController.popBackStack()
+                }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
                     )
@@ -191,8 +194,7 @@ fun AddNewLocationLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = address.address.pinCode,
+                    OutlinedTextField(value = address.address.pinCode,
                         onValueChange = {
                             address = address.copy(address = address.address.copy(pinCode = it))
                         },
@@ -222,8 +224,7 @@ fun AddNewLocationLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(32.dp)
                 ) {
-                    OutlinedTextField(
-                        value = address.address.state,
+                    OutlinedTextField(value = address.address.state,
                         onValueChange = {
                             address = address.copy(address = address.address.copy(state = it))
                         },
@@ -233,8 +234,7 @@ fun AddNewLocationLayout(
                             imeAction = ImeAction.Done
                         )
                     )
-                    OutlinedTextField(
-                        value = address.address.city,
+                    OutlinedTextField(value = address.address.city,
                         onValueChange = {
                             address = address.copy(address = address.address.copy(city = it))
                         },
@@ -246,8 +246,7 @@ fun AddNewLocationLayout(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = address.address.addressLine,
+                OutlinedTextField(value = address.address.addressLine,
                     onValueChange = {
                         address = address.copy(address = address.address.copy(addressLine = it))
                     },
@@ -258,8 +257,7 @@ fun AddNewLocationLayout(
                     )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = address.address.areaName,
+                OutlinedTextField(value = address.address.areaName,
                     onValueChange = {
                         address = address.copy(address = address.address.copy(areaName = it))
                     },
@@ -270,8 +268,7 @@ fun AddNewLocationLayout(
                     )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = address.address.landmark,
+                OutlinedTextField(value = address.address.landmark,
                     onValueChange = {
                         address = address.copy(address = address.address.copy(landmark = it))
                     },

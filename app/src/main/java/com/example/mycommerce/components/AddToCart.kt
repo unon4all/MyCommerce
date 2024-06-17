@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.mycommerce.components
 
 import androidx.compose.foundation.background
@@ -43,7 +45,7 @@ fun AddToCartScreen(
     val cartItems by viewModel.cartItems.collectAsState()
     var isCheckoutClicked by remember { mutableStateOf(false) }
     val addressList by viewModel.userAddresses.collectAsState()
-    val userId by viewModel.userId.collectAsState()
+    val defaultAddress by viewModel.defaultAddress.collectAsState()
 
     Column(
         modifier = Modifier
@@ -63,7 +65,8 @@ fun AddToCartScreen(
     if (cartItems.isNotEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             Button(onClick = {
-                if (addressList.isEmpty()) {
+                if (addressList.isEmpty() || defaultAddress == null) {
+                    viewModel.isAddressOrDefaultAddressNull()
                     navController.navigate(DestinationGraph.Location.route)
                 } else {
                     viewModel.placeOrder()
@@ -80,12 +83,12 @@ fun AddToCartScreen(
     }
 
     if (isCheckoutClicked) {
-        OrderPlacedScreen(navController = navController, viewModel = viewModel)
+        OrderPlacedScreen(navController = navController)
     }
 }
 
 @Composable
-fun OrderPlacedScreen(navController: NavController, viewModel: MyCommerceViewModel) {
+fun OrderPlacedScreen(navController: NavController) {
 
     val composition by rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(R.raw.order_placed)

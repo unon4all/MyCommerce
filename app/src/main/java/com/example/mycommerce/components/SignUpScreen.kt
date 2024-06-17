@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -58,6 +59,7 @@ fun SignupScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
+            .imePadding()
     ) {
         SignUpContent(
             modifier = Modifier,
@@ -81,8 +83,8 @@ fun SignUpContent(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .verticalScroll(rememberScrollState())
+            .imePadding(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         AppEntryLogo()

@@ -510,13 +510,26 @@ class MyCommerceViewModel @Inject constructor(
         }
     }
 
-     fun getMarkDefaultAddress(userId: String) {
+    fun getMarkDefaultAddress(userId: String) {
         viewModelScope.launch {
             try {
                 val address = addressRepository.getDefaultAddress(userId).first()
                 _defaultAddress.value = address
             } catch (e: Exception) {
                 handleException(e, "Failed to fetch address details")
+            }
+        }
+    }
+
+    fun isAddressOrDefaultAddressNull() {
+        viewModelScope.launch {
+            val addresses = _userAddresses.value
+            val defaultAddress = _defaultAddress.value
+
+            if (addresses.isEmpty()) {
+                _popupNotification.value = Event("No address found.\nAdd address.")
+            } else if (defaultAddress == null) {
+                _popupNotification.value = Event("No default address found.\nSet default address.")
             }
         }
     }
