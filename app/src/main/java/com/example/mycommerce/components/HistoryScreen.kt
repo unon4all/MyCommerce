@@ -116,17 +116,21 @@ fun OrderHistoryItemContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "Order Placed for ${itemList.userAddressDetails?.fullName}")
-                Text(text = "Address: ${itemList.userAddressDetails?.address}")
-            }
+            Text(text = "Order Recipient: ${itemList.userAddressDetails?.fullName}")
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "Phone no. ${itemList.userAddressDetails?.phoneNumber}")
-                Text(text = "Phone no. ${itemList.userAddressDetails?.alternateNumber}")
-            }
+            Text(
+                text = "Address: ${itemList.userAddressDetails?.address?.addressLine}, " + " ${itemList.userAddressDetails?.address?.areaName} " + ", ${itemList.userAddressDetails?.address?.city}, " + " ${itemList.userAddressDetails?.address?.state}" + " - ${itemList.userAddressDetails?.address?.pinCode}"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(text = "Phone no: ${itemList.userAddressDetails?.phoneNumber}")
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(text = "Alternate Phone no: ${itemList.userAddressDetails?.alternateNumber}")
         }
     }
 }
