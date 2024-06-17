@@ -48,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
@@ -95,7 +96,7 @@ fun UserProfile(
             Column(Modifier.fillMaxSize()) {
                 ProfileScreen(viewModel = viewModel)
                 Spacer(modifier = Modifier.height(16.dp))
-                UserProfileDetails(viewModel = viewModel)
+                UserProfileDetails(viewModel = viewModel, navController = navController)
             }
         }
     }
@@ -160,7 +161,7 @@ fun ProfileScreen(viewModel: MyCommerceViewModel) {
 
 
 @Composable
-fun UserProfileDetails(viewModel: MyCommerceViewModel) {
+fun UserProfileDetails(viewModel: MyCommerceViewModel, navController: NavController) {
 
     val focusManager = LocalFocusManager.current
 
@@ -233,7 +234,12 @@ fun UserProfileDetails(viewModel: MyCommerceViewModel) {
             placeholder = mobile.text,
         )
 
-        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.padding(horizontal = 16.dp)) {
+        TextButton(
+            onClick = {
+                viewModel.deleteUser(viewModel.userId.value)
+                navController.navigate("signup")
+            }, modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
             Text(
                 text = "Delete Account",
                 color = Color.Red,

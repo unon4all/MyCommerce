@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -108,7 +109,7 @@ fun ExpandableCard(
             .clickable { isExpandable = !isExpandable }
             .padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = "User ID:\n${user.id}")
-            Icon(imageVector = icon, contentDescription = null)
+            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(32.dp))
         }
         if (isExpandable) {
             UserDetails(user = user)

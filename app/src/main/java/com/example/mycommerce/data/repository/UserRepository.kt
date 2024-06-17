@@ -14,7 +14,6 @@ import javax.inject.Inject
 class UserRepository @Inject constructor(
     private val userDao: UserDAO,
     private val sharedPreferences: SharedPreferences // Example dependency for storing user session
-
 ) {
     val getAllUsers: Flow<List<User>> = userDao.getAllUsers()
 
@@ -30,6 +29,10 @@ class UserRepository @Inject constructor(
 
     suspend fun updateUser(user: User) {
         userDao.updateUser(user)
+    }
+
+    suspend fun deleteUser(userId: String) {
+        userDao.deleteUser(userId)
     }
 
     fun getUser(userId: String): Flow<User?> {

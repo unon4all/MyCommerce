@@ -533,4 +533,18 @@ class MyCommerceViewModel @Inject constructor(
             }
         }
     }
+
+    fun deleteUser(userId: String) {
+        viewModelScope.launch {
+            try {
+                userRepository.setCurrentUser(null)
+                updateUserIdAndSignInState(null, false)
+                resetForm()
+                userRepository.deleteUser(userId)
+                _popupNotification.value = Event("User deleted successfully")
+            } catch (e: Exception) {
+                handleException(e, "Failed to delete user")
+            }
+        }
+    }
 }
